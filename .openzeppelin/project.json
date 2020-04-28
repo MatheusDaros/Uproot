@@ -17,5 +17,6 @@
     "manager": "truffle",
     "artifactsDir": "build/contracts",
     "contractsDir": "contracts"
-  }
+  },
+  "telemetryOptIn": true
 }
