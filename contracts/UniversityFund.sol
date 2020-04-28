@@ -1,9 +1,12 @@
-pragma solidity 0.6.4;
+pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Roles.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-contract BasePool {
+contract UniversityFund is Ownable{
+    using SafeMath for uint256;
+    
 
 }
