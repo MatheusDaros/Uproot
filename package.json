@@ -29,7 +29,6 @@
         "solidity-coverage": "0.7.4",
         "truffle": "5.1.23",
         "truffle-deploy-registry": "0.5.1",
-        "truffle-extract": "github:pooltogether/truffle-extract#2a57b6e63a8a2057aad0fec63ba255cd46e9ff1d",
         "truffle-hdwallet-provider": "1.0.17",
         "zos-truffle-merge": "0.0.5"
     },
