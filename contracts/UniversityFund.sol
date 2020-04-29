@@ -20,16 +20,17 @@ contract UniversityFund is Ownable, AccessControl {
 
     // Address list of every registered classroom
     address[] _classList;
+    // Address list of every donor
+    address[] _donors;
 
     constructor() public {
-        _classList = new address[](1000);
+        _classList = new address[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     event NewClassroom(bytes32 indexed name, address addr);
 
     function newClassRoom(bytes32 name) public {
-        // Only _classListAdmin can add new classroom
         require(hasRole(CLASSLIST_ADMIN_ROLE, msg.sender), "DOES_NOT_HAVE_CLASSLIST_ADMIN_ROLE");
         _newClassRoom(name);
     }

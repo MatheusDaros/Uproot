@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./UniversityFund.sol";
 import "./Student.sol";
 
-contract Classroom is Ownable{
+contract Classroom is Ownable {
     using SafeMath for uint256;
 
     bytes32 _name;
