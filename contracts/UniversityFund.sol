@@ -1,45 +1,44 @@
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/access/Roles.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./Classroom.sol";
+import "./Student.sol";
 
-contract UniversityFund is Ownable{
+contract UniversityFund is Ownable, AccessControl {
     using SafeMath for uint256;
-    using Roles for Roles.Role;
 
-    //_classListAdmin can add new manually created classes to the list
-    Roles.Role private _classListAdmin;
-    // _fundsManager can withdraw funds from the contract
-    Roles.Role private _fundsManager;
-    // _grantsManager can approve/decline grant claims
-    Roles.Role private _grantsManager;
+    //classListAdmin can add new manually created classes to the list
+    bytes32 public constant CLASSLIST_ADMIN_ROLE = keccak256("CLASSLIST_ADMIN_ROLE");
+    // fundsManager can withdraw funds from the contract
+    bytes32 public constant FUNDS_MANAGER_ROLE = keccak256("FUNDS_MANAGER_ROLE");
+    // grantsManager can approve/decline grant claims
+    bytes32 public constant GRANTS_MANAGER_ROLE = keccak256("GRANTS_MANAGER_ROLE");
 
     // Address list of every registered classroom
     address[] _classList;
 
-    constructor() public {                  
-        _classList = new address[];        
-    } 
+    constructor() public {
+        _classList = new address[](1000);
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     event NewClassroom(bytes32 indexed name, address addr);
 
-    function classList() public view returns (address[]) {
-        return _classList;
-    }
-    
-    function newClassRoom(address addr, bytes32 name) public {
+    function newClassRoom(bytes32 name) public {
         // Only _classListAdmin can add new classroom
-        require(_classListAdmin.has(msg.sender), "DOES_NOT_HAVE_CLASSLISTADMIN_ROLE");
-        _newClassRoom(addr, name);
+        require(hasRole(CLASSLIST_ADMIN_ROLE, msg.sender), "DOES_NOT_HAVE_CLASSLIST_ADMIN_ROLE");
+        _newClassRoom(name);
     }
 
-    function _newClassRoom(address addr, bytes32 name) internal {
-        _classList.push(addr);
-        emit NewClassroom(name, addr);
+    function _newClassRoom(bytes32 name) internal {
+        Classroom classroom = new Classroom(name, address(this));
+        classroom.transferOwnership(msg.sender);
+        _classList.push(address(classroom));
+        emit NewClassroom(name, address(classroom));
     }
 
 }
