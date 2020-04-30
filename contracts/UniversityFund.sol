@@ -30,6 +30,8 @@ contract UniversityFund is Ownable, AccessControl {
     // grantsManager can approve/decline grant claims
     bytes32 public constant GRANTS_MANAGER_ROLE = keccak256("GRANTS_MANAGER_ROLE");
 
+    // Name of this University
+    bytes32 _name;
     // Address list of every registered classroom
     address[] _classList;
     // Address list of every donor
@@ -38,7 +40,8 @@ contract UniversityFund is Ownable, AccessControl {
     CERC20 public cToken;
     IERC20 public daiToken;
 
-    constructor() public {
+    constructor(bytes32 name) public {
+        _name = name;
         _classList = new address[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         //Kovan address
