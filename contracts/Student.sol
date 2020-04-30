@@ -1,10 +1,14 @@
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC777/IERC777.sol";
+import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
+import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "./Classroom.sol";
 import "./UniversityFund.sol";
 
@@ -14,10 +18,14 @@ contract Student is Ownable {
     bytes32 _name;
     address _universityAddress;
     address[] _classroomAddress;
+    IERC20 public daiToken;
+    CERC20 public cToken;
 
     constructor(bytes32 name, address universityAddress) public {
         _name = name;
         _universityAddress = universityAddress;
+        //Kovan address
+        daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
     }
 
 }

@@ -1,12 +1,24 @@
 pragma solidity 0.6.6;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC777/IERC777.sol";
+import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
+import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "./Classroom.sol";
 import "./Student.sol";
+
+interface CERC20 {
+    function mint(uint256) external returns (uint256);
+    function exchangeRateCurrent() external returns (uint256);
+    function supplyRatePerBlock() external returns (uint256);
+    function redeem(uint) external returns (uint);
+    function redeemUnderlying(uint) external returns (uint);
+}
 
 contract UniversityFund is Ownable, AccessControl {
     using SafeMath for uint256;
@@ -18,14 +30,22 @@ contract UniversityFund is Ownable, AccessControl {
     // grantsManager can approve/decline grant claims
     bytes32 public constant GRANTS_MANAGER_ROLE = keccak256("GRANTS_MANAGER_ROLE");
 
+    // Name of this University
+    bytes32 _name;
     // Address list of every registered classroom
     address[] _classList;
     // Address list of every donor
     address[] _donors;
 
-    constructor() public {
+    CERC20 public cToken;
+    IERC20 public daiToken;
+
+    constructor(bytes32 name) public {
+        _name = name;
         _classList = new address[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        //Kovan address
+        daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
     }
 
     event NewClassroom(bytes32 indexed name, address addr);
