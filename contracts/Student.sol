@@ -19,6 +19,7 @@ contract Student is Ownable {
     address _universityAddress;
     address[] _classroomAddress;
     IERC20 public daiToken;
+    CERC20 public cToken;
 
     constructor(bytes32 name, address universityAddress) public {
         _name = name;

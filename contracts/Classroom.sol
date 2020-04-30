@@ -18,6 +18,7 @@ contract Classroom is Ownable {
     bytes32 _name;
     address _universityAddress;
     IERC20 public daiToken;
+    CERC20 public cToken;
 
     constructor(bytes32 name, address universityAddress) public {
         _name = name;
