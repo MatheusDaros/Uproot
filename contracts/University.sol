@@ -5,9 +5,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC777/IERC777.sol";
-import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
-import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./Classroom.sol";
 import "./Student.sol";
@@ -62,6 +59,10 @@ contract University is Ownable, AccessControl {
 
     function name() public view returns (bytes32){
         return _name;
+    }
+
+    function changeName(bytes32 val) public onlyOwner {
+        _name = val;
     }
 
     function viewClassList() public view returns (Classroom[] memory) {
