@@ -38,8 +38,6 @@ contract Student is Ownable, AccessControl {
             grantRole(DEFAULT_ADMIN_ROLE, universityAddress);
             renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
         }
-        //Kovan address
-        daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
     }
 
     function name() public view returns (bytes32){
@@ -57,11 +55,13 @@ contract Student is Ownable, AccessControl {
 
     function addScore(int32 val) public  {
         require(hasRole(MODIFY_SCORE_ROLE, _msgSender()), "Student: caller doesn't have MODIFY_SCORE_ROLE");
+        require(_score < _score + val, "Student: good grades overflow");
         _score += val;
     }
 
-    function subtractScore(int32 val) public  {
+    function subScore(int32 val) public  {
         require(hasRole(MODIFY_SCORE_ROLE, _msgSender()), "Student: caller doesn't have MODIFY_SCORE_ROLE");
+        require(_score > _score - val, "Student: bad grades overflow");
         _score -= val;
     }
 

@@ -32,13 +32,13 @@ contract StudentApplication is Ownable {
     bytes32 _seed;
     bool _hasAnswer;
 
-    constructor(address studentAddress, address classroomAddress, bytes32 classroomSeed) public {
+    constructor(address studentAddress, address classroomAddress, address daiAddress, bytes32 classroomSeed) public {
         _applicationState = ApplicationState.Dormant;
         _studentAddress = studentAddress;
         _classroomAddress = classroomAddress;
         _hasAnswer = false;
         //Kovan address
-        daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+        daiToken = IERC20(daiAddress);
         _seed = generateSeed(classroomSeed);
     }
 
@@ -78,19 +78,22 @@ contract StudentApplication is Ownable {
     function getHint1() public view returns (bytes32) {
         require(_hasAnswer, "StudentApplication: answer not registered");
         require(_msgSender() == address(_answer), "StudentApplication: are you cheating?");
-        //TODO:
-        return bytes32("HINT1") | _seed;
+        return bytes32("HACKMONEY") | _seed;
     }
 
     function getHint2() public view returns (bytes32) {
         require(_hasAnswer, "StudentApplication: answer not registered");
         require(_msgSender() == address(_answer), "StudentApplication: are you cheating?");
-        //TODO:
-        return bytes32("HINT2") | _seed;
+        return ~bytes32("HACKMONEY") | _seed;
     }
 
     function verifyAnswer() public view returns (bool) {
-        return _answer.getSeed() == _seed;
+        try _answer.getSeed() returns (bytes32 seed) {
+            return seed == _seed;
+        }
+        catch {
+            return false;
+        }
     }
 
     function registerFinalAnswer() public onlyOwner {
