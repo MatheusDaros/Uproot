@@ -5,9 +5,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC777/IERC777.sol";
-import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
-import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./University.sol";
 import "./Student.sol";
@@ -22,7 +19,10 @@ contract Classroom is Ownable {
     StudentApplication[] _studentApplications;
     StudentApplication[] _validStudentApplications;
     mapping(address => address) _studentApplicationsLink;
+
+    //Classroom parameters
     int32 _minScore;
+    uint _entryPrice;
 
     IERC20 public daiToken;
     CERC20 public cToken;
@@ -39,15 +39,31 @@ contract Classroom is Ownable {
         daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
     }
 
-    function name() public view returns (bytes32){
+    function name() public view returns (bytes32) {
         return _name;
+    }
+
+    function changeName(bytes32 val) public onlyOwner {
+        _name = val;
+    }
+
+    function minScore() public view returns (int32) {
+        return _minScore;
     }
 
     function setMinScore(int32 val) public onlyOwner {
         _minScore = val;
     }
 
-    function applicationsState() public view returns (bool){
+    function entryPrice() public view returns (uint) {
+        return _entryPrice;
+    }
+
+    function setEntryPrice(uint val) public onlyOwner {
+        _entryPrice = val;
+    }
+
+    function applicationsState() public view returns (bool) {
         return _openForApplication;
     }
 
@@ -60,6 +76,7 @@ contract Classroom is Ownable {
     function closeApplications() public onlyOwner {
         require(_openForApplication, "Classroom: applications are already closed");
         _openForApplication = false;
+        applyDAI();
     }
 
     function studentApply() public{
@@ -84,7 +101,7 @@ contract Classroom is Ownable {
         classroomActive = true;
     }
 
-    function checkApplications () internal {
+    function checkApplications() internal {
         for (uint i = 0; i < _studentApplications.length ; i++) {
             if (_studentApplications[i].applicationState() == 1) {
                 _studentApplications[i].activate();
@@ -92,5 +109,13 @@ contract Classroom is Ownable {
             }
         }
         _studentApplications = new StudentApplication[](0);
+    }
+
+    //public onlyOwner allow the professor to apply money before closing applications
+    function applyDAI() public onlyOwner {
+        uint balance = daiToken.balanceOf(address(this));
+        require(balance > 0, "Classroom: no funds to apply");
+        _name = "PLACEHOLDER";
+        //TODO:
     }
 }
