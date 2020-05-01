@@ -45,14 +45,14 @@ contract University is Ownable, AccessControl {
     CERC20 public cToken;
     IERC20 public daiToken;
 
-    constructor(bytes32 name) public {
+    constructor(bytes32 name, address daiAddress) public {
         _name = name;
         _classList = new Classroom[](0);
         _students = new Student[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         //Kovan address
-        daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+        daiToken = IERC20(daiAddress);
     }
 
     event NewClassroom(bytes32 indexed name, address addr);
@@ -80,7 +80,7 @@ contract University is Ownable, AccessControl {
 
     function _newClassRoom(bytes32 cName) internal {
         //TODO: fetch contract from external factory to reduce size
-        Classroom classroom = new Classroom(cName, address(this));
+        Classroom classroom = new Classroom(cName, address(this), address(daiToken));
         classroom.transferOwnership(_msgSender());
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
