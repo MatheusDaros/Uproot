@@ -23,6 +23,7 @@ contract Classroom is Ownable {
     //Classroom parameters
     int32 _minScore;
     uint _entryPrice;
+    bytes32 _seed;
 
     IERC20 public daiToken;
     CERC20 public cToken;
@@ -37,6 +38,7 @@ contract Classroom is Ownable {
         classroomActive = false;
         //Kovan address
         daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+        _seed = generateSeed();
     }
 
     function name() public view returns (bytes32) {
@@ -67,6 +69,15 @@ contract Classroom is Ownable {
         return _openForApplication;
     }
 
+    function generateSeed() internal pure returns (bytes32) {
+        //TODO:
+        return "RANDOM";
+    }
+
+    function viewSeed() public view onlyOwner returns (bytes32) {
+        return _seed;
+    }
+
     function openApplications() public onlyOwner {
         require(!_openForApplication, "Classroom: applications are already opened");
         require(_studentApplications.length == 0, "Classroom: students list not empty");
@@ -89,7 +100,8 @@ contract Classroom is Ownable {
     }
 
     function _createStudentApplication(Student student) internal returns (StudentApplication) {
-        StudentApplication newApplication = new StudentApplication(address(student), address(this));
+        //TODO: fetch contract from external factory to reduce size
+        StudentApplication newApplication = new StudentApplication(address(student), address(this), _seed);
         _studentApplicationsLink[address(student)] = address(newApplication);
         return newApplication;
     }

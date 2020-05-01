@@ -79,6 +79,7 @@ contract University is Ownable, AccessControl {
     }
 
     function _newClassRoom(bytes32 cName) internal {
+        //TODO: fetch contract from external factory to reduce size
         Classroom classroom = new Classroom(cName, address(this));
         classroom.transferOwnership(_msgSender());
         _classList.push(classroom);
@@ -92,6 +93,7 @@ contract University is Ownable, AccessControl {
     }
 
     function _newStudent(bytes32 sName) internal {
+        //TODO: fetch contract from external factory to reduce size
         Student student = new Student(sName, address(this));
         student.transferOwnership(_msgSender());
         _students.push(student);
