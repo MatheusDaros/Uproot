@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./University.sol";
 import "./Student.sol";
+import "./StudentApplication.sol";
 
 contract Classroom is Ownable {
     using SafeMath for uint256;
@@ -18,19 +19,28 @@ contract Classroom is Ownable {
     bytes32 _name;
     University _university;
     bool _openForApplication;
-    Student[] _students;
+    StudentApplication[] _studentApplications;
+    StudentApplication[] _validStudentApplications;
+    mapping(address => address) _studentApplicationsLink;
     int32 _minScore;
 
     IERC20 public daiToken;
     CERC20 public cToken;
+
+    bool public classroomActive;
 
     constructor(bytes32 name, address universityAddress) public {
         _name = name;
         _university = University(universityAddress);
         _openForApplication = false;
         _minScore = 0;
+        classroomActive = false;
         //Kovan address
         daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+    }
+
+    function name() public view returns (bytes32){
+        return _name;
     }
 
     function setMinScore(int32 val) public onlyOwner {
@@ -43,7 +53,7 @@ contract Classroom is Ownable {
 
     function openApplications() public onlyOwner {
         require(!_openForApplication, "Classroom: applications are already opened");
-        require(_students.length == 0, "Classroom: students list not empty");
+        require(_studentApplications.length == 0, "Classroom: students list not empty");
         _openForApplication = true;
     }
 
@@ -57,6 +67,30 @@ contract Classroom is Ownable {
         require(_openForApplication, "Classroom: applications closed");
         Student applicant = Student(_msgSender());
         require(applicant.score() >= _minScore, "Classroom: student doesn't have enough score");
-        _students.push(applicant);
+        StudentApplication application = _createStudentApplication(applicant);
+        _studentApplications.push(application);
+    }
+
+    function _createStudentApplication(Student student) internal returns (StudentApplication) {
+        StudentApplication newApplication = new StudentApplication(address(student), address(this));
+        _studentApplicationsLink[address(student)] = address(newApplication);
+        return newApplication;
+    }
+
+    function beginClass() public onlyOwner {
+        require(!_openForApplication, "Classroom: applications are still open");
+        checkApplications();
+        require(_validStudentApplications.length > 0, "Classroom: no ready application");
+        classroomActive = true;
+    }
+
+    function checkApplications () internal {
+        for (uint i = 0; i < _studentApplications.length ; i++) {
+            if (_studentApplications[i].applicationState() == 1) {
+                _studentApplications[i].activate();
+                _validStudentApplications.push(_studentApplications[i]);
+            }
+        }
+        _studentApplications = new StudentApplication[](0);
     }
 }
