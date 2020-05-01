@@ -1,4 +1,5 @@
 node_modules
+build/
 build/contracts/AccessControl.json
 build/contracts/Address.json
 build/contracts/Classroom.json
