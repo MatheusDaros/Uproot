@@ -157,7 +157,7 @@ class ComponentsNavbar extends React.Component {
               </NavItem>
               <NavItem className="p-0">
                 <NavLink
-                  tag={Link} to="/landing"
+                  tag={Link} to="/user"
                   title="My Account"
                 >
                   <i className="fa fa-user" />

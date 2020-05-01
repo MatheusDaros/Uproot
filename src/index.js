@@ -26,6 +26,7 @@ import "assets/demo/demo.css";
 import Index from "views/Index.js";
 import RegisterPage from "views/examples/RegisterPage.js";
 import ProfilePage from "views/examples/ProfilePage.js";
+import User from "views/User.js";
 
 ReactDOM.render(
   <BrowserRouter>
@@ -34,6 +35,10 @@ ReactDOM.render(
       <Route
         path="/register-page"
         render={props => <RegisterPage {...props} />}
+      />
+      <Route
+        path="/user"
+        render={props => <User {...props} />}
       />
       <Route
         path="/profile-page"
