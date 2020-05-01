@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./Classroom.sol";
 import "./University.sol";
+import "./StudentApplication.sol";
 
 contract Student is Ownable, AccessControl {
     using SafeMath for uint256;
@@ -34,12 +35,18 @@ contract Student is Ownable, AccessControl {
         _university = University(universityAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_SCORE_ROLE, _msgSender());
-        grantRole(READ_SCORE_ROLE, universityAddress);
         grantRole(MODIFY_SCORE_ROLE, universityAddress);
-        grantRole(DEFAULT_ADMIN_ROLE, universityAddress);
-        renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        if (_msgSender() != universityAddress) {
+            grantRole(READ_SCORE_ROLE, universityAddress);
+            grantRole(DEFAULT_ADMIN_ROLE, universityAddress);
+            renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        }
         //Kovan address
         daiToken = IERC20(0x4F96Fe3b7A6Cf9725f59d353F723c1bDb64CA6Aa);
+    }
+
+    function name() public view returns (bytes32){
+        return _name;
     }
 
     function score() public view returns(int32) {

@@ -60,6 +60,10 @@ contract University is Ownable, AccessControl {
 
     event NewClassroom(bytes32 indexed name, address addr);
 
+    function name() public view returns (bytes32){
+        return _name;
+    }
+
     function viewClassList() public view returns (Classroom[] memory) {
         return _classList;
     }
@@ -68,26 +72,26 @@ contract University is Ownable, AccessControl {
         return hasRole(CLASSROOM_ROLE, classroom);
     }
 
-    function newClassRoom(bytes32 name) public {
+    function newClassRoom(bytes32 cName) public {
         require(hasRole(CLASSLIST_ADMIN_ROLE, _msgSender()), "University: caller doesn't have CLASSLIST_ADMIN_ROLE");
-        _newClassRoom(name);
+        _newClassRoom(cName);
     }
 
-    function _newClassRoom(bytes32 name) internal {
-        Classroom classroom = new Classroom(name, address(this));
+    function _newClassRoom(bytes32 cName) internal {
+        Classroom classroom = new Classroom(cName, address(this));
         classroom.transferOwnership(_msgSender());
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
         grantRole(CLASSROOM_ROLE, address(classroom));
-        emit NewClassroom(name, address(classroom));
+        emit NewClassroom(cName, address(classroom));
     }
 
-    function studentSelfRegister(bytes32 name) public {
-        _newStudent(name);
+    function studentSelfRegister(bytes32 sName) public {
+        _newStudent(sName);
     }
 
-    function _newStudent(bytes32 name) internal {
-        Student student = new Student(name, address(this));
+    function _newStudent(bytes32 sName) internal {
+        Student student = new Student(sName, address(this));
         student.transferOwnership(_msgSender());
         _students.push(student);
         grantRole(STUDENT_ROLE, address(student));
