@@ -36,11 +36,11 @@ contract University is Ownable, AccessControl {
     bytes32 public constant STUDENT_ROLE = keccak256("STUDENT_ROLE");
 
     // Parameter: Name of this University
-    bytes32 _name;
+    bytes32 public name;
     // Parameter: University cut from professor (Parts per Million)
-    uint24 _cut;
+    uint24 public cut;
     // List of every registered classroom
-    Classroom[] _classList;
+    Classroom[] public _classList;
     // List of every student
     Student[] _students;
     // Mapping of each student's applications
@@ -51,9 +51,9 @@ contract University is Ownable, AccessControl {
     CERC20 public cToken;
     IERC20 public daiToken;
 
-    constructor(bytes32 name, uint24 cut, address daiAddress, address compoundAddress) public {
-        _name = name;
-        _cut = cut;
+    constructor(bytes32 _name, uint24 _cut, address daiAddress, address compoundAddress) public {
+        name = _name;
+        cut = _cut;
         _classList = new Classroom[](0);
         _students = new Student[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -63,71 +63,62 @@ contract University is Ownable, AccessControl {
         cToken = CERC20(compoundAddress);
     }
 
-    event NewClassroom(bytes32 indexed name, address addr);
-
-    function name() public view returns (bytes32){
-        return _name;
-    }
+    event LogNewClassroom(bytes32, address);
+    event LogChangeName(bytes32);
+    event LogChangeCut(uint24);
 
     function changeName(bytes32 val) public onlyOwner {
-        _name = val;
-    }
-
-    function cut() public view returns (uint24){
-        return _cut;
+        name = val;
+        emit LogChangeName(name);
     }
 
     function changeCut(uint24 val) public onlyOwner {
-        _cut = val;
-    }
-
-    function viewClassList() public view returns (Classroom[] memory) {
-        return _classList;
+        cut = val;
+        emit LogChangeCut(cut);
     }
 
     function isValidClassroom(address classroom) public view returns (bool) {
         return hasRole(CLASSROOM_ROLE, classroom);
     }
 
-    function newClassRoom(address owner, bytes32 cName) public {
-         newClassRoom(owner, cName, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days);
+    function studentIsRegistered(address student) public view returns (bool){
+        require(hasRole(READ_STUDENT_LIST_ROLE, _msgSender()), "University: caller doesn't have READ_STUDENT_LIST_ROLE");
+        return hasRole(STUDENT_ROLE, student);
     }
 
-    function newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+    //ex: owner, name, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days, challengeAddress
+    function newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut,
+            int32 minScore, uint entryPrice, uint duration, address challengeAddress) public {
         require(hasRole(CLASSLIST_ADMIN_ROLE, _msgSender()), "University: caller doesn't have CLASSLIST_ADMIN_ROLE");
-        _newClassRoom(owner, cName, cCut, cPCut, minScore, entryPrice, duration);
+        _newClassRoom(owner, cName, cCut, cPCut, minScore, entryPrice, duration, challengeAddress);
     }
 
-    function _newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
+    function _newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut,
+            int32 minScore, uint entryPrice, uint duration, address challengeAddress) internal {
         //TODO: fetch contract from external factory to reduce size
         Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration,
-            address(this), address(daiToken), address(cToken));
+            address(this), address(daiToken), address(cToken), challengeAddress);
         classroom.transferOwnership(owner);
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
         grantRole(CLASSROOM_ROLE, address(classroom));
-        emit NewClassroom(cName, address(classroom));
+        emit LogNewClassroom(cName, address(classroom));
     }
 
     //TODO: Use GSN to improve UX for new student
     function studentSelfRegister(bytes32 sName) public {
-        _newStudent(sName);
+        require(_studentApplicationsMapping[_msgSender()].length == 0, "University: student already registered");
+        _newStudent(sName, _msgSender());
     }
 
-    function _newStudent(bytes32 sName) internal {
-        require(_studentApplicationsMapping[_msgSender()].length == 0, "University: student already registered");
+    function _newStudent(bytes32 sName, address addr) internal {
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
-        _studentApplicationsMapping[_msgSender()].push(address(0));
+        _studentApplicationsMapping[addr].push(address(0));
         //TODO: fetch contract from external factory to reduce size
         Student student = new Student(sName, address(this));
-        student.transferOwnership(_msgSender());
+        student.transferOwnership(addr);
         _students.push(student);
         grantRole(STUDENT_ROLE, address(student));
-    }
-
-    function studentIsRegistered(address student) public view returns (bool){
-        require(hasRole(READ_STUDENT_LIST_ROLE, _msgSender()), "University: caller doesn't have READ_STUDENT_LIST_ROLE");
-        return hasRole(STUDENT_ROLE, student);
     }
 
     function registerStudentApplication(address student, address application) public {
@@ -145,12 +136,12 @@ contract University is Ownable, AccessControl {
     }
 
     function studentRequestClassroom(address applicationAddr,
-            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration, address challenge) public {
         require(hasRole(STUDENT_ROLE, _msgSender()), "University: caller doesn't have STUDENT_ROLE");
         StudentApplication application = StudentApplication(applicationAddr);
         require(checkForStudentApplication(_msgSender(), applicationAddr), "University: caller is not student of this application");
         require(application.applicationState() == 3, "University: application is not successful");
-        _newClassRoom(Student(_msgSender()).owner(), cName, cCut, cPCut, minScore, entryPrice, duration);
+        _newClassRoom(Student(_msgSender()).owner(), cName, cCut, cPCut, minScore, entryPrice, duration, challenge);
     }
 
     function checkForStudentApplication(address studentAddress, address applicationAddress) internal view returns (bool) {
