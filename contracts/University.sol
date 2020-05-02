@@ -36,11 +36,11 @@ contract University is Ownable, AccessControl {
     bytes32 public constant STUDENT_ROLE = keccak256("STUDENT_ROLE");
 
     // Parameter: Name of this University
-    bytes32 _name;
+    bytes32 public _name;
     // Parameter: University cut from professor (Parts per Million)
-    uint24 _cut;
+    uint24 public _cut;
     // List of every registered classroom
-    Classroom[] _classList;
+    Classroom[] public _classList;
     // List of every student
     Student[] _students;
     // Mapping of each student's applications
@@ -63,30 +63,26 @@ contract University is Ownable, AccessControl {
         cToken = CERC20(compoundAddress);
     }
 
-    event NewClassroom(bytes32 indexed name, address addr);
+    event NewClassroom(bytes32 indexed, address);
 
-    function name() public view returns (bytes32){
-        return _name;
-    }
+    event LogNameChange(bytes32 indexed);
 
     function changeName(bytes32 val) public onlyOwner {
         _name = val;
-    }
-
-    function cut() public view returns (uint24){
-        return _cut;
+        emit LogNameChange(_name);
     }
 
     function changeCut(uint24 val) public onlyOwner {
         _cut = val;
     }
 
-    function viewClassList() public view returns (Classroom[] memory) {
-        return _classList;
-    }
-
     function isValidClassroom(address classroom) public view returns (bool) {
         return hasRole(CLASSROOM_ROLE, classroom);
+    }
+
+    function studentIsRegistered(address student) public view returns (bool){
+        require(hasRole(READ_STUDENT_LIST_ROLE, _msgSender()), "University: caller doesn't have READ_STUDENT_LIST_ROLE");
+        return hasRole(STUDENT_ROLE, student);
     }
 
     function newClassRoom(address owner, bytes32 cName) public {
@@ -123,11 +119,6 @@ contract University is Ownable, AccessControl {
         student.transferOwnership(_msgSender());
         _students.push(student);
         grantRole(STUDENT_ROLE, address(student));
-    }
-
-    function studentIsRegistered(address student) public view returns (bool){
-        require(hasRole(READ_STUDENT_LIST_ROLE, _msgSender()), "University: caller doesn't have READ_STUDENT_LIST_ROLE");
-        return hasRole(STUDENT_ROLE, student);
     }
 
     function registerStudentApplication(address student, address application) public {

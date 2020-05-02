@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "./University.sol";
 import "./Student.sol";
 import "./StudentApplication.sol";
+import "./IClassroomChallenge.sol";
 
 contract Classroom is Ownable {
     using SafeMath for uint256;
@@ -24,25 +25,28 @@ contract Classroom is Ownable {
     uint _totalBalance;
 
     //Classroom parameters
-    bytes32 _name;
-    uint24 _principalCut;
-    uint24 _poolCut;
-    int32 _minScore;
-    uint _entryPrice;
-    uint _duration;
+    bytes32 public _name;
+    uint24 public _principalCut;
+    uint24 public _poolCut;
+    int32 public _minScore;
+    uint public _entryPrice;
+    uint public _duration;
     bytes32 _seed;
 
     IERC20 public daiToken;
     CERC20 public cToken;
+    address public _challengeAddress;
 
     bool public classroomActive;
 
-    event warnOpenApplications();
+    event LogOpenApplications();
 
-    event warnCloseApplications();
+    event LogCloseApplications();
+
+    event LogChangeChallenge(address);
 
     constructor(bytes32 name, uint24 principalCut, uint24 poolCut, int32 minScore, uint entryPrice,
-            uint duration, address universityAddress, address daiAddress, address compoundAddress) public {
+            uint duration, address universityAddress, address daiAddress, address compoundAddress, address challengeAddress) public {
         _name = name;
         _university = University(universityAddress);
         _openForApplication = false;
@@ -55,59 +59,32 @@ contract Classroom is Ownable {
         //Kovan address
         daiToken = IERC20(daiAddress);
         cToken = CERC20(compoundAddress);
+        _challengeAddress = challengeAddress;
         _seed = generateSeed();
-    }
-
-    function name() public view returns (bytes32) {
-        return _name;
     }
 
     function changeName(bytes32 val) public onlyOwner {
         _name = val;
     }
 
-    function principalCut() public view returns (uint24){
-        return _principalCut;
-    }
-
     function changePrincipalCut(uint24 val) public onlyOwner {
         _principalCut = val;
-    }
-
-    function poolCut() public view returns (uint24){
-        return _poolCut;
     }
 
     function changePoolCut(uint24 val) public onlyOwner {
         _poolCut = val;
     }
 
-    function minScore() public view returns (int32) {
-        return _minScore;
-    }
-
     function setMinScore(int32 val) public onlyOwner {
         _minScore = val;
-    }
-
-    function entryPrice() public view returns (uint) {
-        return _entryPrice;
     }
 
     function setEntryPrice(uint val) public onlyOwner {
         _entryPrice = val;
     }
 
-    function duration() public view returns (uint) {
-        return _duration;
-    }
-
     function setDuration(uint val) public onlyOwner {
         _duration = val;
-    }
-
-    function applicationsState() public view returns (bool) {
-        return _openForApplication;
     }
 
     function viewAllApplications() public view onlyOwner returns (address[] memory) {
@@ -127,6 +104,11 @@ contract Classroom is Ownable {
         return _seed;
     }
 
+    function changeChallenge(address addr) public onlyOwner {
+        require(_studentApplications.length.add(_validStudentApplications.length) == 0, "Classroom: can't change challenge now");
+        _challengeAddress = addr;
+        emit LogChangeChallenge(_challengeAddress);
+    }
     //TODO: allow teacher to setup a custom challenge
 
     function isCourseOngoing() public view returns (bool) {
@@ -137,13 +119,13 @@ contract Classroom is Ownable {
         require(!_openForApplication, "Classroom: applications are already opened");
         require(_studentApplications.length == 0, "Classroom: students list not empty");
         _openForApplication = true;
-        emit warnOpenApplications();
+        emit LogOpenApplications();
     }
 
     function closeApplications() public onlyOwner {
         require(_openForApplication, "Classroom: applications are already closed");
         _openForApplication = false;
-        emit warnCloseApplications();
+        emit LogCloseApplications();
     }
 
     //public onlyOwner allow the professor to apply money before and after closing applications
@@ -166,7 +148,7 @@ contract Classroom is Ownable {
 
     function _createStudentApplication(Student student) internal returns (StudentApplication) {
         //TODO: fetch contract from external factory to reduce size
-        StudentApplication newApplication = new StudentApplication(address(student), address(this), address(daiToken), _seed);
+        StudentApplication newApplication = new StudentApplication(address(student), address(this), address(daiToken), _challengeAddress, _seed);
         _studentApplicationsLink[address(student)] = address(newApplication);
         _university.registerStudentApplication(address(student), address(newApplication));
         _studentsLookUp.push(address(student));
