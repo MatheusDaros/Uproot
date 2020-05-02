@@ -36,9 +36,9 @@ contract University is Ownable, AccessControl {
     bytes32 public constant STUDENT_ROLE = keccak256("STUDENT_ROLE");
 
     // Parameter: Name of this University
-    bytes32 public _name;
+    bytes32 public name;
     // Parameter: University cut from professor (Parts per Million)
-    uint24 public _cut;
+    uint24 public cut;
     // List of every registered classroom
     Classroom[] public _classList;
     // List of every student
@@ -51,9 +51,9 @@ contract University is Ownable, AccessControl {
     CERC20 public cToken;
     IERC20 public daiToken;
 
-    constructor(bytes32 name, uint24 cut, address daiAddress, address compoundAddress) public {
-        _name = name;
-        _cut = cut;
+    constructor(bytes32 _name, uint24 _cut, address daiAddress, address compoundAddress) public {
+        name = _name;
+        cut = _cut;
         _classList = new Classroom[](0);
         _students = new Student[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -63,17 +63,18 @@ contract University is Ownable, AccessControl {
         cToken = CERC20(compoundAddress);
     }
 
-    event NewClassroom(bytes32 indexed, address);
-
-    event LogNameChange(bytes32 indexed);
+    event LogNewClassroom(bytes32, address);
+    event LogChangeName(bytes32);
+    event LogChangeCut(uint24);
 
     function changeName(bytes32 val) public onlyOwner {
-        _name = val;
-        emit LogNameChange(_name);
+        name = val;
+        emit LogChangeName(name);
     }
 
     function changeCut(uint24 val) public onlyOwner {
-        _cut = val;
+        cut = val;
+        emit LogChangeCut(cut);
     }
 
     function isValidClassroom(address classroom) public view returns (bool) {
@@ -102,7 +103,7 @@ contract University is Ownable, AccessControl {
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
         grantRole(CLASSROOM_ROLE, address(classroom));
-        emit NewClassroom(cName, address(classroom));
+        emit LogNewClassroom(cName, address(classroom));
     }
 
     //TODO: Use GSN to improve UX for new student
