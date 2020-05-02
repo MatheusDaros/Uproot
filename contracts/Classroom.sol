@@ -4,7 +4,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./University.sol";
 import "./Student.sol";
@@ -167,6 +166,7 @@ contract Classroom is Ownable {
         //TODO: fetch contract from external factory to reduce size
         StudentApplication newApplication = new StudentApplication(address(student), address(this), address(daiToken), _seed);
         _studentApplicationsLink[address(student)] = address(newApplication);
+        _university.registerStudentApplication(address(student), address(newApplication));
         _studentsLookUp.push(address(student));
         _applicationsLookUp.push(address(newApplication));
         return newApplication;

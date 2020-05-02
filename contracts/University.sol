@@ -4,10 +4,10 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./Classroom.sol";
 import "./Student.sol";
+import "./StudentApplication.sol";
 
 interface CERC20 {
     function mint(uint256) external returns (uint256);
@@ -28,11 +28,11 @@ contract University is Ownable, AccessControl {
     bytes32 public constant FUNDS_MANAGER_ROLE = keccak256("FUNDS_MANAGER_ROLE");
     // GRANTS_MANAGER_ROLE can approve/decline grant claims
     bytes32 public constant GRANTS_MANAGER_ROLE = keccak256("GRANTS_MANAGER_ROLE");
-    // CLASSROOM_ROLE can manage itself inside the University
+    // CLASSROOM_ROLE can manage itself inside the University and registering student applications
     bytes32 public constant CLASSROOM_ROLE = keccak256("CLASSROOM_ROLE");
     // READ_STUDENT_LIST_ROLE allow reading students list
     bytes32 public constant READ_STUDENT_LIST_ROLE = keccak256("READ_STUDENT_LIST_ROLE");
-    // STUDENT_ROLE allow asking for grants
+    // STUDENT_ROLE allow asking for grants and requesting a classroom from a successful application
     bytes32 public constant STUDENT_ROLE = keccak256("STUDENT_ROLE");
 
     // Parameter: Name of this University
@@ -43,6 +43,8 @@ contract University is Ownable, AccessControl {
     Classroom[] _classList;
     // List of every student
     Student[] _students;
+    // Mapping of each student's applications
+    mapping(address => address[]) _studentApplicationsMapping;
     // Address list of every donor
     address[] _donors;
 
@@ -87,20 +89,20 @@ contract University is Ownable, AccessControl {
         return hasRole(CLASSROOM_ROLE, classroom);
     }
 
-    function newClassRoom(bytes32 cName) public {
-         newClassRoom(cName, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days);
+    function newClassRoom(address owner, bytes32 cName) public {
+         newClassRoom(owner, cName, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days);
     }
 
-    function newClassRoom(bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+    function newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
         require(hasRole(CLASSLIST_ADMIN_ROLE, _msgSender()), "University: caller doesn't have CLASSLIST_ADMIN_ROLE");
-        _newClassRoom(cName, cCut, cPCut, minScore, entryPrice, duration);
+        _newClassRoom(owner, cName, cCut, cPCut, minScore, entryPrice, duration);
     }
 
-    function _newClassRoom(bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
+    function _newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
         //TODO: fetch contract from external factory to reduce size
         Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration,
             address(this), address(daiToken), address(cToken));
-        classroom.transferOwnership(_msgSender());
+        classroom.transferOwnership(owner);
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
         grantRole(CLASSROOM_ROLE, address(classroom));
@@ -112,6 +114,9 @@ contract University is Ownable, AccessControl {
     }
 
     function _newStudent(bytes32 sName) internal {
+        require(_studentApplicationsMapping[_msgSender()].length == 0, "University: student already registered");
+        //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
+        _studentApplicationsMapping[_msgSender()].push(address(0));
         //TODO: fetch contract from external factory to reduce size
         Student student = new Student(sName, address(this));
         student.transferOwnership(_msgSender());
@@ -122,6 +127,36 @@ contract University is Ownable, AccessControl {
     function studentIsRegistered(address student) public view returns (bool){
         require(hasRole(READ_STUDENT_LIST_ROLE, _msgSender()), "University: caller doesn't have READ_STUDENT_LIST_ROLE");
         return hasRole(STUDENT_ROLE, student);
+    }
+
+    function registerStudentApplication(address student, address application) public {
+        require(hasRole(CLASSROOM_ROLE, _msgSender()), "University: caller doesn't have CLASSROOM_ROLE");
+        _studentApplicationsMapping[student].push(application);
+    }
+
+    function viewMyApplications() public view returns (address[] memory) {
+        return viewStudentApplications(_msgSender());
+    }
+
+    function viewStudentApplications(address addr) public view returns (address[] memory) {
+        require(addr == _msgSender() || hasRole(GRANTS_MANAGER_ROLE, _msgSender()), "Classroom: read permission denied");
+        return _studentApplicationsMapping[addr];
+    }
+
+    function studentRequestClassroom(address applicationAddr,
+            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+        require(hasRole(STUDENT_ROLE, _msgSender()), "University: caller doesn't have STUDENT_ROLE");
+        StudentApplication application = StudentApplication(applicationAddr);
+        require(checkForStudentApplication(_msgSender(), applicationAddr), "University: caller is not student of this application");
+        require(application.applicationState() == 3, "University: application is not successful");
+        _newClassRoom(Student(_msgSender()).owner(), cName, cCut, cPCut, minScore, entryPrice, duration);
+    }
+
+    function checkForStudentApplication(address studentAddress, address applicationAddress) internal view returns (bool) {
+        for (uint i = 0; i < _studentApplicationsMapping[studentAddress].length ; i++) {
+            if (_studentApplicationsMapping[studentAddress][i] == applicationAddress) return true;
+        }
+        return false;
     }
 
     function addStudentScore(address student, int32 val) public  {
