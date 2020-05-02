@@ -86,19 +86,18 @@ contract University is Ownable, AccessControl {
         return hasRole(STUDENT_ROLE, student);
     }
 
-    function newClassRoom(address owner, bytes32 cName) public {
-         newClassRoom(owner, cName, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days);
-    }
-
-    function newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+    //ex: owner, name, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days, challengeAddress
+    function newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut,
+            int32 minScore, uint entryPrice, uint duration, address challengeAddress) public {
         require(hasRole(CLASSLIST_ADMIN_ROLE, _msgSender()), "University: caller doesn't have CLASSLIST_ADMIN_ROLE");
-        _newClassRoom(owner, cName, cCut, cPCut, minScore, entryPrice, duration);
+        _newClassRoom(owner, cName, cCut, cPCut, minScore, entryPrice, duration, challengeAddress);
     }
 
-    function _newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
+    function _newClassRoom(address owner, bytes32 cName, uint24 cCut, uint24 cPCut,
+            int32 minScore, uint entryPrice, uint duration, address challengeAddress) internal {
         //TODO: fetch contract from external factory to reduce size
         Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration,
-            address(this), address(daiToken), address(cToken));
+            address(this), address(daiToken), address(cToken), challengeAddress);
         classroom.transferOwnership(owner);
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
@@ -108,16 +107,16 @@ contract University is Ownable, AccessControl {
 
     //TODO: Use GSN to improve UX for new student
     function studentSelfRegister(bytes32 sName) public {
-        _newStudent(sName);
+        require(_studentApplicationsMapping[_msgSender()].length == 0, "University: student already registered");
+        _newStudent(sName, _msgSender());
     }
 
-    function _newStudent(bytes32 sName) internal {
-        require(_studentApplicationsMapping[_msgSender()].length == 0, "University: student already registered");
+    function _newStudent(bytes32 sName, address addr) internal {
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
-        _studentApplicationsMapping[_msgSender()].push(address(0));
+        _studentApplicationsMapping[addr].push(address(0));
         //TODO: fetch contract from external factory to reduce size
         Student student = new Student(sName, address(this));
-        student.transferOwnership(_msgSender());
+        student.transferOwnership(addr);
         _students.push(student);
         grantRole(STUDENT_ROLE, address(student));
     }
@@ -137,12 +136,12 @@ contract University is Ownable, AccessControl {
     }
 
     function studentRequestClassroom(address applicationAddr,
-            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration, address challenge) public {
         require(hasRole(STUDENT_ROLE, _msgSender()), "University: caller doesn't have STUDENT_ROLE");
         StudentApplication application = StudentApplication(applicationAddr);
         require(checkForStudentApplication(_msgSender(), applicationAddr), "University: caller is not student of this application");
         require(application.applicationState() == 3, "University: application is not successful");
-        _newClassRoom(Student(_msgSender()).owner(), cName, cCut, cPCut, minScore, entryPrice, duration);
+        _newClassRoom(Student(_msgSender()).owner(), cName, cCut, cPCut, minScore, entryPrice, duration, challenge);
     }
 
     function checkForStudentApplication(address studentAddress, address applicationAddress) internal view returns (bool) {

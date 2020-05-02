@@ -93,8 +93,8 @@ contract Student is Ownable, AccessControl {
         StudentApplication(application).withdrawResults(to, val);
     }
 
-    function requestClassroom(address applicationAddr,
-            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public onlyOwner {
-        _university.studentRequestClassroom(applicationAddr, cName, cCut, cPCut, minScore, entryPrice, duration);
+    function requestClassroom(address applicationAddr, bytes32 cName, uint24 cCut, uint24 cPCut,
+            int32 minScore, uint entryPrice, uint duration, address challenge) public onlyOwner {
+        _university.studentRequestClassroom(applicationAddr, cName, cCut, cPCut, minScore, entryPrice, duration, challenge);
     }
 }

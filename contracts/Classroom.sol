@@ -188,7 +188,7 @@ contract Classroom is Ownable {
         require(_validStudentApplications.length > 0, "Classroom: no ready application");
         classroomActive = true;
         //TODO: use oracle
-        _endDate = block.timestamp.add(_duration);
+        _endDate = block.timestamp.add(duration);
     }
 
     function checkApplications() internal {
