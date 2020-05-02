@@ -54,6 +54,10 @@ contract StudentApplication is Ownable {
         return _seed;
     }
 
+    function studentAddress() public view onlyOwner returns (address) {
+        return _studentAddress;
+    }
+
     function applicationState() public view returns (uint) {
         require(_msgSender() == _studentAddress || _msgSender() == owner(), "StudentApplication: read permission denied");
         return uint(_applicationState);
@@ -130,4 +134,6 @@ contract StudentApplication is Ownable {
         require(applicationState() > 2, "StudentApplication: application not finished");
         daiToken.transferFrom(_classroomAddress, to, val);
     }
+
+    //TODO: option to create classroom from success application
 }
