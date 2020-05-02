@@ -33,8 +33,10 @@ contract University is Ownable, AccessControl {
     // STUDENT_ROLE allow asking for grants
     bytes32 public constant STUDENT_ROLE = keccak256("STUDENT_ROLE");
 
-    // Name of this University
+    // Parameter: Name of this University
     bytes32 _name;
+    // Parameter: University cut from professor (Parts per Million)
+    uint24 _cut;
     // List of every registered classroom
     Classroom[] _classList;
     // List of every student
@@ -45,8 +47,9 @@ contract University is Ownable, AccessControl {
     CERC20 public cToken;
     IERC20 public daiToken;
 
-    constructor(bytes32 name, address daiAddress) public {
+    constructor(bytes32 name, uint24 cut, address daiAddress) public {
         _name = name;
+        _cut = cut;
         _classList = new Classroom[](0);
         _students = new Student[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -65,6 +68,14 @@ contract University is Ownable, AccessControl {
         _name = val;
     }
 
+    function cut() public view returns (uint24){
+        return _cut;
+    }
+
+    function changeCut(uint24 val) public onlyOwner {
+        _cut = val;
+    }
+
     function viewClassList() public view returns (Classroom[] memory) {
         return _classList;
     }
@@ -74,13 +85,17 @@ contract University is Ownable, AccessControl {
     }
 
     function newClassRoom(bytes32 cName) public {
-        require(hasRole(CLASSLIST_ADMIN_ROLE, _msgSender()), "University: caller doesn't have CLASSLIST_ADMIN_ROLE");
-        _newClassRoom(cName);
+         newClassRoom(cName, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days);
     }
 
-    function _newClassRoom(bytes32 cName) internal {
+    function newClassRoom(bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public {
+        require(hasRole(CLASSLIST_ADMIN_ROLE, _msgSender()), "University: caller doesn't have CLASSLIST_ADMIN_ROLE");
+        _newClassRoom(cName, cCut, cPCut, minScore, entryPrice, duration);
+    }
+
+    function _newClassRoom(bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
         //TODO: fetch contract from external factory to reduce size
-        Classroom classroom = new Classroom(cName, address(this), address(daiToken));
+        Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration, address(this), address(daiToken));
         classroom.transferOwnership(_msgSender());
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
