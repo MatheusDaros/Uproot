@@ -9,11 +9,13 @@ import "./University.sol";
 import "./Student.sol";
 import "./Classroom.sol";
 import "./IStudentAnswer.sol";
+import "./IClassroomChallenge.sol";
 
 contract StudentApplication is Ownable {
     using SafeMath for uint256;
 
     IERC20 public daiToken;
+    IClassroomChallenge _challenge;
 
     enum ApplicationState {
         New,
@@ -34,7 +36,7 @@ contract StudentApplication is Ownable {
     uint _principalReturned;
     uint _completionPrize;
 
-    constructor(address studentAddress, address classroomAddress, address daiAddress, bytes32 classroomSeed) public {
+    constructor(address studentAddress, address classroomAddress, address daiAddress, address challengeAddress, bytes32 classroomSeed) public {
         _applicationState = ApplicationState.New;
         _studentAddress = studentAddress;
         _classroomAddress = classroomAddress;
@@ -42,15 +44,12 @@ contract StudentApplication is Ownable {
         //Kovan address
         daiToken = IERC20(daiAddress);
         _seed = generateSeed(classroomSeed);
+        _challenge = IClassroomChallenge(challengeAddress);
     }
 
     function generateSeed(bytes32 baseSeed) internal pure returns (bytes32) {
         //TODO:
         return baseSeed^"RANDOM";
-    }
-
-    function viewSeed() public view onlyOwner returns (bytes32) {
-        return _seed;
     }
 
     function studentAddress() public view onlyOwner returns (address) {
@@ -60,6 +59,11 @@ contract StudentApplication is Ownable {
     function applicationState() public view returns (uint) {
         require(_msgSender() == _studentAddress || _msgSender() == owner(), "StudentApplication: read permission denied");
         return uint(_applicationState);
+    }
+
+    function challengeAddress() public view returns (address) {
+        require(_msgSender() == _studentAddress || _msgSender() == owner(), "StudentApplication: read permission denied");
+        return address(_challenge);
     }
 
     function payEntryPrice() external {
@@ -87,18 +91,16 @@ contract StudentApplication is Ownable {
        _hasAnswer = true;
     }
 
-    //TODO: separate challenge in another smart contract
-
-    function getHint1() public view returns (bytes32) {
-        require(_hasAnswer, "StudentApplication: answer not registered");
-        require(_msgSender() == address(_answer), "StudentApplication: are you cheating?");
-        return bytes32("HACKMONEY") | _seed;
+    function viewChallengeMaterial() public view returns (string memory) {
+        require(_msgSender() == _studentAddress || _msgSender() == owner(), "StudentApplication: read permission denied");
+        return _challenge.viewMaterial();
     }
 
-    function getHint2() public view returns (bytes32) {
+    function getHint(uint index) public view returns (bytes32) {
         require(_hasAnswer, "StudentApplication: answer not registered");
         require(_msgSender() == address(_answer), "StudentApplication: are you cheating?");
-        return ~bytes32("HACKMONEY") | _seed;
+        require(index < _challenge.hintsCount(), "StudentApplication: hint not available");
+        return _challenge.getHint(index, _seed);
     }
 
     function verifyAnswer() public view returns (bool) {
@@ -135,6 +137,4 @@ contract StudentApplication is Ownable {
         require(applicationState() > 2, "StudentApplication: application not finished");
         daiToken.transferFrom(_classroomAddress, to, val);
     }
-
-    //TODO: option to create classroom from success application
 }
