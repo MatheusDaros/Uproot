@@ -109,6 +109,7 @@ contract University is Ownable, AccessControl {
         emit NewClassroom(cName, address(classroom));
     }
 
+    //TODO: Use GSN to improve UX for new student
     function studentSelfRegister(bytes32 sName) public {
         _newStudent(sName);
     }
@@ -189,4 +190,6 @@ contract University is Ownable, AccessControl {
         require(hasRole(FUNDS_MANAGER_ROLE, _msgSender()), "University: caller doesn't have FUNDS_MANAGER_ROLE");
         daiToken.approve(to, val);
     }
+
+    //TODO: manage grants
 }

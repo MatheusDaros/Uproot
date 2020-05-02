@@ -127,6 +127,8 @@ contract Classroom is Ownable {
         return _seed;
     }
 
+    //TODO: allow teacher to setup a custom challenge
+
     function isCourseOngoing() public view returns (bool) {
         return _validStudentApplications.length > 0;
     }

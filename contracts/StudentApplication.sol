@@ -87,6 +87,8 @@ contract StudentApplication is Ownable {
        _hasAnswer = true;
     }
 
+    //TODO: separate challenge in another smart contract
+
     function getHint1() public view returns (bytes32) {
         require(_hasAnswer, "StudentApplication: answer not registered");
         require(_msgSender() == address(_answer), "StudentApplication: are you cheating?");
