@@ -15,6 +15,8 @@ interface CERC20 {
     function supplyRatePerBlock() external returns (uint256);
     function redeem(uint) external returns (uint);
     function redeemUnderlying(uint) external returns (uint);
+    function getCash() external returns (uint);
+    function balanceOfUnderlying(address account) external returns (uint);
 }
 
 contract University is Ownable, AccessControl {
@@ -47,7 +49,7 @@ contract University is Ownable, AccessControl {
     CERC20 public cToken;
     IERC20 public daiToken;
 
-    constructor(bytes32 name, uint24 cut, address daiAddress) public {
+    constructor(bytes32 name, uint24 cut, address daiAddress, address compoundAddress) public {
         _name = name;
         _cut = cut;
         _classList = new Classroom[](0);
@@ -56,6 +58,7 @@ contract University is Ownable, AccessControl {
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         //Kovan address
         daiToken = IERC20(daiAddress);
+        cToken = CERC20(compoundAddress);
     }
 
     event NewClassroom(bytes32 indexed name, address addr);
@@ -95,7 +98,7 @@ contract University is Ownable, AccessControl {
 
     function _newClassRoom(bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
         //TODO: fetch contract from external factory to reduce size
-        Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration, address(this), address(daiToken));
+        Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration, address(this), address(daiToken), address(cToken));
         classroom.transferOwnership(_msgSender());
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
@@ -120,4 +123,28 @@ contract University is Ownable, AccessControl {
         return hasRole(STUDENT_ROLE, student);
     }
 
+    function addStudentScore(address student, int32 val) public  {
+        require(hasRole(CLASSROOM_ROLE, _msgSender()), "University: caller doesn't have CLASSROOM_ROLE");
+        Student(student).addScore(val);
+    }
+
+    function subStudentScore(address student,int32 val) public  {
+        require(hasRole(CLASSROOM_ROLE, _msgSender()), "University: caller doesn't have CLASSROOM_ROLE");
+        Student(student).subScore(val);
+    }
+
+    function applyFunds(uint val) public {
+        require(hasRole(FUNDS_MANAGER_ROLE, _msgSender()), "University: caller doesn't have FUNDS_MANAGER_ROLE");
+        //TODO:
+    }
+
+    function spendFunds(address to, uint val) public {
+        require(hasRole(FUNDS_MANAGER_ROLE, _msgSender()), "University: caller doesn't have FUNDS_MANAGER_ROLE");
+        daiToken.transfer(to, val);
+    }
+
+    function allowFunds(address to, uint val) public {
+        require(hasRole(FUNDS_MANAGER_ROLE, _msgSender()), "University: caller doesn't have FUNDS_MANAGER_ROLE");
+        daiToken.approve(to, val);
+    }
 }
