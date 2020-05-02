@@ -17,7 +17,7 @@ contract Student is Ownable, AccessControl {
     //MODIFY_SCORE_ROLE can read student Score
     bytes32 public constant MODIFY_SCORE_ROLE = keccak256("MODIFY_SCORE_ROLE");
 
-    bytes32 public _name;
+    bytes32 public name;
     University _university;
     address[] _classroomAddress;
     int32 _score;
@@ -25,8 +25,8 @@ contract Student is Ownable, AccessControl {
     IERC20 public daiToken;
     CERC20 public cToken;
 
-    constructor(bytes32 name, address universityAddress) public {
-        _name = name;
+    constructor(bytes32 _name, address universityAddress) public {
+        name = _name;
         _score = 0;
         _university = University(universityAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
@@ -39,8 +39,11 @@ contract Student is Ownable, AccessControl {
         }
     }
 
+    event LogChangeName(bytes32);
+
     function changeName(bytes32 val) public onlyOwner {
-        _name = val;
+        name = val;
+        emit LogChangeName(name);
     }
 
     function score() public view returns(int32) {
