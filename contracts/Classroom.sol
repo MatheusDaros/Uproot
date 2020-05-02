@@ -4,7 +4,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./University.sol";
 import "./Student.sol";
@@ -15,12 +14,14 @@ contract Classroom is Ownable {
 
     University _university;
     bool _openForApplication;
+    bool _courseFinished;
     StudentApplication[] _studentApplications;
     StudentApplication[] _validStudentApplications;
     mapping(address => address) _studentApplicationsLink;
     address[] _studentsLookUp;
     address[] _applicationsLookUp;
     uint _endDate;
+    uint _totalBalance;
 
     //Classroom parameters
     bytes32 _name;
@@ -41,7 +42,7 @@ contract Classroom is Ownable {
     event warnCloseApplications();
 
     constructor(bytes32 name, uint24 principalCut, uint24 poolCut, int32 minScore, uint entryPrice,
-            uint duration, address universityAddress, address daiAddress) public {
+            uint duration, address universityAddress, address daiAddress, address compoundAddress) public {
         _name = name;
         _university = University(universityAddress);
         _openForApplication = false;
@@ -53,6 +54,7 @@ contract Classroom is Ownable {
         classroomActive = false;
         //Kovan address
         daiToken = IERC20(daiAddress);
+        cToken = CERC20(compoundAddress);
         _seed = generateSeed();
     }
 
@@ -125,6 +127,12 @@ contract Classroom is Ownable {
         return _seed;
     }
 
+    //TODO: allow teacher to setup a custom challenge
+
+    function isCourseOngoing() public view returns (bool) {
+        return _validStudentApplications.length > 0;
+    }
+
     function openApplications() public onlyOwner {
         require(!_openForApplication, "Classroom: applications are already opened");
         require(_studentApplications.length == 0, "Classroom: students list not empty");
@@ -135,16 +143,15 @@ contract Classroom is Ownable {
     function closeApplications() public onlyOwner {
         require(_openForApplication, "Classroom: applications are already closed");
         _openForApplication = false;
-        applyDAI();
         emit warnCloseApplications();
     }
 
-    //public onlyOwner allow the professor to apply money before closing applications
+    //public onlyOwner allow the professor to apply money before and after closing applications
     function applyDAI() public onlyOwner {
         uint balance = daiToken.balanceOf(address(this));
-        require(balance > 0, "Classroom: no funds to apply");
-        _name = "PLACEHOLDER";
-        //TODO:
+        if (balance <= 0) return;
+        daiToken.approve(address(cToken), balance);
+        cToken.mint(balance);
     }
 
     function studentApply() public{
@@ -161,6 +168,7 @@ contract Classroom is Ownable {
         //TODO: fetch contract from external factory to reduce size
         StudentApplication newApplication = new StudentApplication(address(student), address(this), address(daiToken), _seed);
         _studentApplicationsLink[address(student)] = address(newApplication);
+        _university.registerStudentApplication(address(student), address(newApplication));
         _studentsLookUp.push(address(student));
         _applicationsLookUp.push(address(newApplication));
         return newApplication;
@@ -177,6 +185,7 @@ contract Classroom is Ownable {
 
     function beginCourse() public onlyOwner {
         require(!_openForApplication, "Classroom: applications are still open");
+        require(daiToken.balanceOf(address(this)) == 0, "Classroom: invest all balance before begin");
         checkApplications();
         _studentApplications = new StudentApplication[](0);
         require(_validStudentApplications.length > 0, "Classroom: no ready application");
@@ -195,16 +204,27 @@ contract Classroom is Ownable {
                 _studentApplications[i].expire();
             }
         }
-        _studentApplications = new StudentApplication[](0);
     }
 
     function finishCourse() public onlyOwner {
         //TODO: use oracle
         require (_endDate <= block.timestamp, "Classroom: too soon to finish course");
         require (_validStudentApplications.length > 0, "Classroom: no applications");
+        _totalBalance = _recoverInvestment();
+        _courseFinished = true;
+    }
+
+    function _recoverInvestment() internal returns (uint) {
+        uint balance = cToken.balanceOfUnderlying(address(this));
+        cToken.redeemUnderlying(balance);
+        return balance;
+    }
+
+    function processResults () public onlyOwner {
+        require(_courseFinished, "Classroom: course not finished");
+        require(_totalBalance <= daiToken.balanceOf(address(this)), "Classroom: not enough DAI to proceed");
         (uint successCount, uint emptyCount) = _startAnswerVerification();
-        uint totalBalance = _recoverInvestment();
-        (uint universityCut, uint[] memory studentAllowances) = _accountValues(totalBalance, successCount, emptyCount);
+        (uint universityCut, uint[] memory studentAllowances) = _accountValues(successCount, emptyCount);
         _resolveStudentAllowances(studentAllowances);
         _resolveUniversityCut(universityCut);
         _updateStudentScores();
@@ -222,14 +242,9 @@ contract Classroom is Ownable {
         return (successCount, emptyCount);
     }
 
-    function _recoverInvestment() internal returns (uint) {
-        
-        return daiToken.balanceOf(address(this));
-    }
-
-    function _accountValues(uint totalBalance, uint successCount, uint emptyCount) internal returns (uint, uint[] memory) {
+    function _accountValues(uint successCount, uint emptyCount) internal returns (uint, uint[] memory) {
         uint nStudents = _validStudentApplications.length;
-        uint returnsPool = totalBalance.sub(_entryPrice.mul(nStudents));
+        uint returnsPool = _totalBalance.sub(_entryPrice.mul(nStudents));
         uint professorPaymentPerStudent = _entryPrice.mul(_principalCut).div(10 ** 6);
         uint studentPrincipalReturn = _entryPrice.sub(professorPaymentPerStudent);
         uint successPool = returnsPool.mul(successCount).div(nStudents);
@@ -262,16 +277,28 @@ contract Classroom is Ownable {
     }
 
     function _resolveUniversityCut(uint universityCut) internal {
-        //TODO:
+        daiToken.transfer(address(_university), universityCut);
     }
 
     function _updateStudentScores() internal {
         for (uint i = 0; i < _validStudentApplications.length ; i++) {
-            //TODO:
+            if (_validStudentApplications[i].applicationState() == 3)
+                _university.addStudentScore(_validStudentApplications[i].studentAddress(), 1);
+            if (_validStudentApplications[i].applicationState() == 4)
+                _university.subStudentScore(_validStudentApplications[i].studentAddress(), 1);
+            if (_validStudentApplications[i].applicationState() == 5)
+                _university.subStudentScore(_validStudentApplications[i].studentAddress(), 2);
         }
     }
 
     function _clearClassroom() internal {
         _validStudentApplications = new StudentApplication[](0);
+        withdrawAllResults();
+        _totalBalance = 0;
+        _courseFinished = false;
+    }
+
+    function withdrawAllResults() public onlyOwner {
+        daiToken.transferFrom(address(this), owner(), daiToken.balanceOf(address(this)));
     }
 }

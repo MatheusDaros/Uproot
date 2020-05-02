@@ -4,7 +4,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./University.sol";
 import "./Student.sol";
@@ -54,6 +53,10 @@ contract StudentApplication is Ownable {
         return _seed;
     }
 
+    function studentAddress() public view onlyOwner returns (address) {
+        return _studentAddress;
+    }
+
     function applicationState() public view returns (uint) {
         require(_msgSender() == _studentAddress || _msgSender() == owner(), "StudentApplication: read permission denied");
         return uint(_applicationState);
@@ -83,6 +86,8 @@ contract StudentApplication is Ownable {
        _answer = answer;
        _hasAnswer = true;
     }
+
+    //TODO: separate challenge in another smart contract
 
     function getHint1() public view returns (bytes32) {
         require(_hasAnswer, "StudentApplication: answer not registered");
@@ -130,4 +135,6 @@ contract StudentApplication is Ownable {
         require(applicationState() > 2, "StudentApplication: application not finished");
         daiToken.transferFrom(_classroomAddress, to, val);
     }
+
+    //TODO: option to create classroom from success application
 }
