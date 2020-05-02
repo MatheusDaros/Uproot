@@ -4,7 +4,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./Classroom.sol";
 import "./University.sol";
@@ -93,5 +92,10 @@ contract Student is Ownable, AccessControl {
 
     function withdrawResultsFromApplication(address application, address to, uint val) public onlyOwner {
         StudentApplication(application).withdrawResults(to, val);
+    }
+
+    function requestClassroom(address applicationAddr,
+            bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) public onlyOwner {
+        _university.studentRequestClassroom(applicationAddr, cName, cCut, cPCut, minScore, entryPrice, duration);
     }
 }
