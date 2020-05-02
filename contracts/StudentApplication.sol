@@ -17,12 +17,13 @@ contract StudentApplication is Ownable {
     IERC20 public daiToken;
 
     enum ApplicationState {
-        Dormant,
+        New,
         Ready,
         Active,
         Success,
         Failed,
-        Empty
+        Empty,
+        Expired
     }
 
     IStudentAnswer _answer;
@@ -31,9 +32,11 @@ contract StudentApplication is Ownable {
     address _classroomAddress;
     bytes32 _seed;
     bool _hasAnswer;
+    uint _principalReturned;
+    uint _completionPrize;
 
     constructor(address studentAddress, address classroomAddress, address daiAddress, bytes32 classroomSeed) public {
-        _applicationState = ApplicationState.Dormant;
+        _applicationState = ApplicationState.New;
         _studentAddress = studentAddress;
         _classroomAddress = classroomAddress;
         _hasAnswer = false;
@@ -57,14 +60,20 @@ contract StudentApplication is Ownable {
     }
 
     function payEntryPrice() external {
-        require(_applicationState == ApplicationState.Dormant, "StudentApplication: application is not dormant");
+        require(_applicationState == ApplicationState.New, "StudentApplication: application is not New");
         require(daiToken.transferFrom(msg.sender, _classroomAddress, Classroom(_classroomAddress).entryPrice()),
             "StudentApplication: could not transfer DAI");
         _applicationState = ApplicationState.Ready;
     }
 
     function activate() public onlyOwner {
+        require( _applicationState == ApplicationState.New, "StudentApplication: application is not New");
         _applicationState = ApplicationState.Active;
+    }
+
+    function expire() public onlyOwner {
+        require( _applicationState == ApplicationState.New, "StudentApplication: application is not New");
+        _applicationState = ApplicationState.Expired;
     }
 
     function registerAnswer() public {
@@ -104,5 +113,21 @@ contract StudentApplication is Ownable {
             if (verifyAnswer()) _applicationState = ApplicationState.Success;
             else _applicationState = ApplicationState.Failed;
         }
+    }
+
+    function accountAllowance(uint principal, uint prize) public onlyOwner {
+        require(applicationState() > 2, "StudentApplication: application not finished yet");
+        _principalReturned = principal;
+        _completionPrize = prize;
+    }
+
+    function withdrawAllResults(address to) public {
+        withdrawResults(to, _principalReturned + _completionPrize);
+    }
+
+    function withdrawResults(address to, uint val) public {
+        require(_msgSender() == _studentAddress, "StudentApplication: only student can withdraw");
+        require(applicationState() > 2, "StudentApplication: application not finished");
+        daiToken.transferFrom(_classroomAddress, to, val);
     }
 }

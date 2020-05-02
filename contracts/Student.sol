@@ -79,4 +79,19 @@ contract Student is Ownable, AccessControl {
         }
     }
 
+    function withdrawAllResultsFromClassroom(address classroom, address to) public onlyOwner {
+        withdrawAllResultsFromApplication(Classroom(classroom).viewMyApplication(), to);
+    }
+
+    function withdrawResultsFromClassroom(address classroom, address to, uint val) public onlyOwner {
+        withdrawResultsFromApplication(Classroom(classroom).viewMyApplication(), to, val);
+    }
+
+    function withdrawAllResultsFromApplication(address application, address to) public onlyOwner {
+        StudentApplication(application).withdrawAllResults(to);
+    }
+
+    function withdrawResultsFromApplication(address application, address to, uint val) public onlyOwner {
+        StudentApplication(application).withdrawResults(to, val);
+    }
 }
