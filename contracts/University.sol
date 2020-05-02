@@ -98,7 +98,8 @@ contract University is Ownable, AccessControl {
 
     function _newClassRoom(bytes32 cName, uint24 cCut, uint24 cPCut, int32 minScore, uint entryPrice, uint duration) internal {
         //TODO: fetch contract from external factory to reduce size
-        Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration, address(this), address(daiToken), address(cToken));
+        Classroom classroom = new Classroom(cName, cCut, cPCut, minScore, entryPrice, duration,
+            address(this), address(daiToken), address(cToken));
         classroom.transferOwnership(_msgSender());
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
@@ -135,7 +136,13 @@ contract University is Ownable, AccessControl {
 
     function applyFunds(uint val) public {
         require(hasRole(FUNDS_MANAGER_ROLE, _msgSender()), "University: caller doesn't have FUNDS_MANAGER_ROLE");
-        //TODO:
+        daiToken.approve(address(cToken), val);
+        cToken.mint(val);
+    }
+
+    function recoverFunds(uint val) public {
+        require(hasRole(FUNDS_MANAGER_ROLE, _msgSender()), "University: caller doesn't have FUNDS_MANAGER_ROLE");
+        cToken.redeemUnderlying(val);
     }
 
     function spendFunds(address to, uint val) public {
