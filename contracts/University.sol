@@ -243,13 +243,14 @@ contract University is Ownable, AccessControl, BaseRelayRecipient {
         emit LogReceived(msg.sender, msg.value);
     }
 
-    function studentSelfRegisterGSN(bytes32 sName) public {
+    function studentSelfRegisterGSN(bytes32 sName) public returns (address) {
         require(
             _studentApplicationsMapping[_msgSenderGSN()].length == 0,
             "University: student already registered"
         );
         address student = _newStudent(sName, _msgSenderGSN());
         relayHub.depositFor.value(_studentGSNDeposit)(student);
+        return student;
     }
 
     function refillUniversityRelayer(uint256 val) public {
@@ -262,12 +263,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient {
 
     //TODO: Trade DAI for ETH in Uniswap
 
-    function studentSelfRegister(bytes32 sName) public {
+    function studentSelfRegister(bytes32 sName) public returns (address) {
         require(
             _studentApplicationsMapping[_msgSender()].length == 0,
             "University: student already registered"
         );
-        _newStudent(sName, _msgSender());
+        return _newStudent(sName, _msgSender());
     }
 
     function _newStudent(bytes32 sName, address caller)

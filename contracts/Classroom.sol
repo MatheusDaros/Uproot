@@ -208,6 +208,7 @@ contract Classroom is Ownable, ChainlinkClient {
     }
 
     function openApplications() public onlyOwner {
+        //TODO: require Oracle setup and Link funds
         require(
             !openForApplication,
             "Classroom: applications are already opened"
