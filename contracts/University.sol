@@ -27,6 +27,9 @@ interface CERC20 {
 }
 
 
+//TODO: Natspec Document ENVERYTHING
+//TODO: Sort function order from all contracts
+
 contract University is Ownable, AccessControl {
     using SafeMath for uint256;
 
@@ -42,14 +45,18 @@ contract University is Ownable, AccessControl {
     bytes32 public constant GRANTS_MANAGER_ROLE = keccak256(
         "GRANTS_MANAGER_ROLE"
     );
-    // CLASSROOM_ROLE can manage itself inside the University and registering student applications
-    bytes32 public constant CLASSROOM_ROLE = keccak256("CLASSROOM_ROLE");
     // READ_STUDENT_LIST_ROLE allow reading students list
     bytes32 public constant READ_STUDENT_LIST_ROLE = keccak256(
         "READ_STUDENT_LIST_ROLE"
     );
-    // STUDENT_ROLE allow asking for grants and requesting a classroom from a successful application
-    bytes32 public constant STUDENT_ROLE = keccak256("STUDENT_ROLE");
+    /// STUDENT_IDENTITY_ROLE allow asking for grants and requesting a classroom from a successful application
+    bytes32 public constant STUDENT_IDENTITY_ROLE = keccak256(
+        "STUDENT_IDENTITY_ROLE"
+    );
+    /// CLASSROOM_PROFESSOR_ROLE can manage itself inside the University and registering student applications
+    bytes32 public constant CLASSROOM_PROFESSOR_ROLE = keccak256(
+        "CLASSROOM_PROFESSOR_ROLE"
+    );
 
     // Parameter: Name of this University
     bytes32 public name;
@@ -79,7 +86,6 @@ contract University is Ownable, AccessControl {
         _students = new Student[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
-        //Kovan address
         daiToken = IERC20(daiAddress);
         cToken = CERC20(compoundAddress);
     }
@@ -99,7 +105,7 @@ contract University is Ownable, AccessControl {
     }
 
     function isValidClassroom(address classroom) public view returns (bool) {
-        return hasRole(CLASSROOM_ROLE, classroom);
+        return hasRole(CLASSROOM_PROFESSOR_ROLE, classroom);
     }
 
     function studentIsRegistered(address student) public view returns (bool) {
@@ -107,7 +113,7 @@ contract University is Ownable, AccessControl {
             hasRole(READ_STUDENT_LIST_ROLE, _msgSender()),
             "University: caller doesn't have READ_STUDENT_LIST_ROLE"
         );
-        return hasRole(STUDENT_ROLE, student);
+        return hasRole(STUDENT_IDENTITY_ROLE, student);
     }
 
     //ex: owner, name, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days, challengeAddress
@@ -156,14 +162,14 @@ contract University is Ownable, AccessControl {
             entryPrice,
             duration,
             address(this),
+            challengeAddress,
             address(daiToken),
-            address(cToken),
-            challengeAddress
+            address(cToken)
         );
         classroom.transferOwnership(owner);
         _classList.push(classroom);
         grantRole(READ_STUDENT_LIST_ROLE, address(classroom));
-        grantRole(CLASSROOM_ROLE, address(classroom));
+        grantRole(CLASSROOM_PROFESSOR_ROLE, address(classroom));
         emit LogNewClassroom(cName, address(classroom));
     }
 
@@ -183,15 +189,15 @@ contract University is Ownable, AccessControl {
         Student student = new Student(sName, address(this));
         student.transferOwnership(addr);
         _students.push(student);
-        grantRole(STUDENT_ROLE, address(student));
+        grantRole(STUDENT_IDENTITY_ROLE, address(student));
     }
 
     function registerStudentApplication(address student, address application)
         public
     {
         require(
-            hasRole(CLASSROOM_ROLE, _msgSender()),
-            "University: caller doesn't have CLASSROOM_ROLE"
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
         );
         _studentApplicationsMapping[student].push(application);
     }
@@ -223,14 +229,14 @@ contract University is Ownable, AccessControl {
         address challenge
     ) public {
         require(
-            hasRole(STUDENT_ROLE, _msgSender()),
-            "University: caller doesn't have STUDENT_ROLE"
+            hasRole(STUDENT_IDENTITY_ROLE, _msgSender()),
+            "University: caller doesn't have STUDENT_IDENTITY_ROLE"
         );
-        StudentApplication application = StudentApplication(applicationAddr);
         require(
             checkForStudentApplication(_msgSender(), applicationAddr),
             "University: caller is not student of this application"
         );
+        StudentApplication application = StudentApplication(applicationAddr);
         require(
             application.applicationState() == 3,
             "University: application is not successful"
@@ -266,16 +272,16 @@ contract University is Ownable, AccessControl {
 
     function addStudentScore(address student, int32 val) public {
         require(
-            hasRole(CLASSROOM_ROLE, _msgSender()),
-            "University: caller doesn't have CLASSROOM_ROLE"
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
         );
         Student(student).addScore(val);
     }
 
     function subStudentScore(address student, int32 val) public {
         require(
-            hasRole(CLASSROOM_ROLE, _msgSender()),
-            "University: caller doesn't have CLASSROOM_ROLE"
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
         );
         Student(student).subScore(val);
     }

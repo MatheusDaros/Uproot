@@ -34,21 +34,15 @@ contract StudentApplication is Ownable {
         address classroomAddress,
         address daiAddress,
         address challengeAddress,
-        bytes32 classroomSeed
+        bytes32 seed
     ) public {
         _applicationState = ApplicationState.New;
         _studentAddress = studentAddress;
         _classroomAddress = classroomAddress;
         _hasAnswer = false;
-        //Kovan address
         daiToken = IERC20(daiAddress);
-        _seed = generateSeed(classroomSeed);
+        _seed = seed;
         _challenge = IClassroomChallenge(challengeAddress);
-    }
-
-    function generateSeed(bytes32 baseSeed) internal pure returns (bytes32) {
-        //TODO:
-        return baseSeed ^ "RANDOM";
     }
 
     function studentAddress() public view onlyOwner returns (address) {

@@ -12,7 +12,8 @@
         "compile-sass": "node-sass src/assets/scss/blk-design-system-react.scss src/assets/css/blk-design-system-react.css",
         "minify-sass": "node-sass src/assets/scss/blk-design-system-react.scss src/assets/css/blk-design-system-react.min.css --output-style compressed",
         "map-sass": "node-sass src/assets/scss/blk-design-system-react.scss src/assets/css/blk-design-system-react.css --source-map true",
-        "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol"
+        "solhint": "./node_modules/.bin/solhint -f table contracts/**/*.sol",
+        "docgen": "solidoc ./ ./docs"
     },
     "keywords": [
         "react",
@@ -33,6 +34,7 @@
         "blk-design-system-react"
     ],
     "dependencies": {
+        "@chainlink/contracts": "^0.0.3",
         "@openzeppelin/contracts": "3.0.1",
         "@openzeppelin/upgrades": "2.8.0",
         "chart.js": "2.9.3",
@@ -53,6 +55,7 @@
         "reactstrap": "8.4.1",
         "rimble-ui": "^0.14.0",
         "solhint": "^2.3.1",
+        "solidoc": "^1.0.5",
         "styled-components": "^5.1.0"
     },
     "devDependencies": {
