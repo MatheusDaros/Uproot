@@ -8,12 +8,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
-import "./Classroom.sol";
-import "./University.sol";
-import "./StudentApplication.sol";
+import "./interface/IClassroom.sol";
+import "./interface/IUniversity.sol";
+import "./interface/IStudentApplication.sol";
+import "./interface/IGrantsManager.sol";
 
 
-contract Student is Ownable, AccessControl, BaseRelayRecipient {
+contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
     using SafeMath for uint256;
 
     //READ_SCORE_ROLE can read student Score
@@ -22,17 +23,16 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
     bytes32 public constant MODIFY_SCORE_ROLE = keccak256("MODIFY_SCORE_ROLE");
 
     bytes32 public name;
-    University _university;
+    IUniversity _university;
     address[] _classroomAddress;
     int32 _score;
 
     IERC20 public daiToken;
-    CERC20 public cToken;
 
     constructor(bytes32 _name, address payable universityAddress) public {
         name = _name;
         _score = 0;
-        _university = University(universityAddress);
+        _university = IUniversity(universityAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_SCORE_ROLE, _msgSender());
         grantRole(MODIFY_SCORE_ROLE, universityAddress);
@@ -43,40 +43,18 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         }
     }
 
-    function acceptRelayedCall(
-        GSNTypes.RelayRequest calldata relayRequest,
-        bytes calldata,
-        uint256
-    )
-    external
-    view 
-    returns (bytes memory context) {
-        require(_msgSenderGSN() == owner(), "Student: GSN enabled only for the student");
-        return abi.encode(relayRequest.target, 0);
-    }
-
-    function preRelayedCall(bytes calldata context) external returns (bytes32) {
-
-    }
-
-    function postRelayedCall(
-        bytes calldata context,
-        bool success,
-        bytes32 preRetVal,
-        uint256 gasUseWithoutPost,
-        GSNTypes.GasData calldata gasData
-    ) external {
-
-    }
-
     event LogChangeName(bytes32);
+
+    function ownerStudent() public view override returns (address) {
+        return owner();
+    }
 
     function changeName(bytes32 val) public onlyOwner {
         name = val;
         emit LogChangeName(name);
     }
 
-    function score() public view returns (int32) {
+    function score() public view override returns (int32) {
         require(
             hasRole(READ_SCORE_ROLE, _msgSender()),
             "Student: caller doesn't have READ_SCORE_ROLE"
@@ -84,7 +62,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         return _score;
     }
 
-    function addScore(int32 val) public {
+    function addScore(int32 val) public override {
         require(
             hasRole(MODIFY_SCORE_ROLE, _msgSender()),
             "Student: caller doesn't have MODIFY_SCORE_ROLE"
@@ -93,7 +71,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         _score += val;
     }
 
-    function subScore(int32 val) public {
+    function subScore(int32 val) public override {
         require(
             hasRole(MODIFY_SCORE_ROLE, _msgSender()),
             "Student: caller doesn't have MODIFY_SCORE_ROLE"
@@ -108,7 +86,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
             "Student: address is not a valid classroom"
         );
         grantRole(READ_SCORE_ROLE, classroomAddress);
-        Classroom(classroomAddress).studentApply();
+        IClassroom(classroomAddress).studentApply();
         _classroomAddress.push(classroomAddress);
     }
 
@@ -125,7 +103,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         onlyOwner
     {
         withdrawAllResultsFromApplication(
-            Classroom(classroom).viewMyApplication(),
+            IClassroom(classroom).viewMyApplication(),
             to
         );
     }
@@ -136,7 +114,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         uint256 val
     ) public onlyOwner {
         withdrawResultsFromApplication(
-            Classroom(classroom).viewMyApplication(),
+            IClassroom(classroom).viewMyApplication(),
             to,
             val
         );
@@ -146,7 +124,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         public
         onlyOwner
     {
-        StudentApplication(application).withdrawAllResults(to);
+        IStudentApplication(application).withdrawAllResults(to);
     }
 
     function withdrawResultsFromApplication(
@@ -154,7 +132,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         address to,
         uint256 val
     ) public onlyOwner {
-        StudentApplication(application).withdrawResults(to, val);
+        IStudentApplication(application).withdrawResults(to, val);
     }
 
     function requestClassroom(
@@ -178,4 +156,30 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
             challenge
         );
     }
+
+    function transferOwnershipStudent(address newOwner) public override {
+        transferOwnership(newOwner);
+    }
+
+    function acceptRelayedCall(
+        GSNTypes.RelayRequest calldata relayRequest,
+        bytes calldata,
+        uint256
+    ) external view returns (bytes memory context) {
+        require(
+            _msgSenderGSN() == owner(),
+            "Student: GSN enabled only for the student"
+        );
+        return abi.encode(relayRequest.target, 0);
+    }
+
+    function preRelayedCall(bytes calldata) external returns (bytes32) {}
+
+    function postRelayedCall(
+        bytes calldata,
+        bool success,
+        bytes32,
+        uint256,
+        GSNTypes.GasData calldata
+    ) external {}
 }

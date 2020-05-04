@@ -5,14 +5,15 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./University.sol";
-import "./Student.sol";
-import "./Classroom.sol";
-import "./IStudentAnswer.sol";
-import "./IClassroomChallenge.sol";
+import "./interface/IUniversity.sol";
+import "./interface/IStudent.sol";
+import "./interface/IClassroom.sol";
+import "./interface/IStudentApplication.sol";
+import "./interface/IStudentAnswer.sol";
+import "./interface/IClassroomChallenge.sol";
 
 
-contract StudentApplication is Ownable {
+contract StudentApplication is Ownable, IStudentApplication {
     using SafeMath for uint256;
 
     IERC20 public daiToken;
@@ -45,11 +46,11 @@ contract StudentApplication is Ownable {
         _challenge = IClassroomChallenge(challengeAddress);
     }
 
-    function studentAddress() public view onlyOwner returns (address) {
+    function studentAddress() public view override onlyOwner returns (address) {
         return _studentAddress;
     }
 
-    function applicationState() public view returns (uint256) {
+    function applicationState() public view override returns (uint256) {
         require(
             _msgSender() == _studentAddress || _msgSender() == owner(),
             "StudentApplication: read permission denied"
@@ -74,14 +75,14 @@ contract StudentApplication is Ownable {
             daiToken.transferFrom(
                 msg.sender,
                 _classroomAddress,
-                Classroom(_classroomAddress).entryPrice()
+                IClassroom(_classroomAddress).entryPrice()
             ),
             "StudentApplication: could not transfer DAI"
         );
         _applicationState = ApplicationState.Ready;
     }
 
-    function activate() public onlyOwner {
+    function activate() public override onlyOwner {
         require(
             _applicationState == ApplicationState.New,
             "StudentApplication: application is not New"
@@ -89,7 +90,7 @@ contract StudentApplication is Ownable {
         _applicationState = ApplicationState.Active;
     }
 
-    function expire() public onlyOwner {
+    function expire() public override onlyOwner {
         require(
             _applicationState == ApplicationState.New,
             "StudentApplication: application is not New"
@@ -97,7 +98,7 @@ contract StudentApplication is Ownable {
         _applicationState = ApplicationState.Expired;
     }
 
-    function registerAnswer() public {
+    function registerAnswer() public override {
         require(
             _applicationState == ApplicationState.Active,
             "StudentApplication: application is not active"
@@ -119,7 +120,7 @@ contract StudentApplication is Ownable {
         return _challenge.viewMaterial();
     }
 
-    function getHint(uint256 index) public view returns (bytes32) {
+    function getHint(uint256 index) public view override returns (bytes32) {
         require(_hasAnswer, "StudentApplication: answer not registered");
         require(
             _msgSender() == address(_answer),
@@ -140,7 +141,7 @@ contract StudentApplication is Ownable {
         }
     }
 
-    function registerFinalAnswer() public onlyOwner {
+    function registerFinalAnswer() public override onlyOwner {
         if (!_hasAnswer) {
             _applicationState = ApplicationState.Empty;
         } else {
@@ -151,6 +152,7 @@ contract StudentApplication is Ownable {
 
     function accountAllowance(uint256 principal, uint256 prize)
         public
+        override
         onlyOwner
     {
         require(
@@ -161,11 +163,11 @@ contract StudentApplication is Ownable {
         _completionPrize = prize;
     }
 
-    function withdrawAllResults(address to) public {
+    function withdrawAllResults(address to) public override {
         withdrawResults(to, _principalReturned + _completionPrize);
     }
 
-    function withdrawResults(address to, uint256 val) public {
+    function withdrawResults(address to, uint256 val) public override {
         require(
             _msgSender() == _studentAddress,
             "StudentApplication: only student can withdraw"

@@ -6,20 +6,24 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
-import "./University.sol";
-import "./Student.sol";
-import "./StudentApplication.sol";
-import "./IClassroomChallenge.sol";
+import "./interface/IUniversity.sol";
+import "./interface/IStudent.sol";
+import "./interface/IClassroom.sol";
+import "./interface/IStudentApplication.sol";
+import "./interface/IClassroomChallenge.sol";
+import "./interface/IStudentApplicationFactory.sol";
+import "./StudentApplicationFactory.sol";
+import "./MyUtils.sol";
 
 
-contract Classroom is Ownable, ChainlinkClient {
-    University public university;
+contract Classroom is Ownable, ChainlinkClient, IClassroom {
+    IUniversity public university;
     bool public openForApplication;
     bool public courseFinished;
     bool public classroomActive;
     bool _timestampAlarm;
-    StudentApplication[] _studentApplications;
-    StudentApplication[] _validStudentApplications;
+    address[] _studentApplications;
+    address[] _validStudentApplications;
     mapping(address => address) _studentApplicationsLink;
     address[] _studentsLookUp;
     address[] _applicationsLookUp;
@@ -32,11 +36,12 @@ contract Classroom is Ownable, ChainlinkClient {
     uint24 public principalCut;
     uint24 public poolCut;
     int32 public minScore;
-    uint256 public entryPrice;
+    uint256 public override entryPrice;
     uint256 public duration;
 
     IERC20 public daiToken;
     CERC20 public cToken;
+    StudentApplicationFactory _studentApplicationFactory;
     address public _challengeAddress;
 
     address _oracleRandom;
@@ -56,7 +61,8 @@ contract Classroom is Ownable, ChainlinkClient {
         address payable universityAddress,
         address challengeAddress,
         address daiAddress,
-        address compoundAddress
+        address compoundAddress,
+        address studentApplicationFactoryAddress
     ) public {
         name = _name;
         principalCut = _principalCut;
@@ -64,12 +70,13 @@ contract Classroom is Ownable, ChainlinkClient {
         minScore = _minScore;
         entryPrice = _entryPrice;
         duration = _duration;
-        university = University(universityAddress);
+        university = IUniversity(universityAddress);
         _challengeAddress = challengeAddress;
         openForApplication = false;
         classroomActive = false;
         daiToken = IERC20(daiAddress);
         cToken = CERC20(compoundAddress);
+        _studentApplicationFactory = StudentApplicationFactory(studentApplicationFactoryAddress);
         _generateSeed();
     }
 
@@ -99,6 +106,10 @@ contract Classroom is Ownable, ChainlinkClient {
         _oracleTimestamp = oracleTimestamp;
         _requestIdTimestamp = requestIdTimestamp;
         _oraclePaymentTimestamp = oraclePaymentTimestamp;
+    }
+
+    function transferOwnershipClassroom(address newOwner) public override {
+        transferOwnership(newOwner);
     }
 
     //TODO: Buy LINK with DAI using Uniswap
@@ -133,6 +144,12 @@ contract Classroom is Ownable, ChainlinkClient {
         emit LogChangeDuration(duration);
     }
 
+    function changeChallenge(address addr) public onlyOwner {
+        require(isClassroomEmpty(), "Classroom: can't change challenge now");
+        _challengeAddress = addr;
+        emit LogChangeChallenge(_challengeAddress);
+    }
+
     function viewAllApplications()
         public
         view
@@ -142,6 +159,18 @@ contract Classroom is Ownable, ChainlinkClient {
         return _applicationsLookUp;
     }
 
+    function viewMyApplication() public view override returns (address) {
+        return viewApplication(_msgSender());
+    }
+
+    function viewApplication(address addr) public view returns (address) {
+        require(
+            addr == _msgSender() || _msgSender() == owner(),
+            "Classroom: read permission denied"
+        );
+        return _studentApplicationsLink[addr];
+    }
+
     function viewAllStudents()
         public
         view
@@ -149,52 +178,6 @@ contract Classroom is Ownable, ChainlinkClient {
         returns (address[] memory)
     {
         return _studentsLookUp;
-    }
-
-    function _generateSeed() internal {
-        Chainlink.Request memory req = buildChainlinkRequest(
-            _requestIdRandom,
-            address(this),
-            this.fulfillGenerateSeed.selector
-        );
-        sendChainlinkRequestTo(_oracleRandom, req, _oraclePaymentRandom);
-    }
-
-    function fulfillGenerateSeed(bytes32 _requestId, uint256 data)
-        public
-        recordChainlinkFulfillment(_requestId)
-    {
-        _seed = keccak256(_toBytes(data));
-    }
-
-    function _toBytes(uint256 x) internal pure returns (bytes memory b) {
-        b = new bytes(32);
-        assembly {
-            mstore(add(b, 32), x)
-        }
-    }
-
-    function _setAlarm() internal {
-        Chainlink.Request memory req = buildChainlinkRequest(
-            _requestIdTimestamp,
-            address(this),
-            this.fulfillGetTimestamp.selector
-        );
-        req.addUint("until", now + duration);
-        sendChainlinkRequestTo(_oracleTimestamp, req, _oraclePaymentTimestamp);
-    }
-
-    function fulfillGetTimestamp(bytes32 _requestId)
-        public
-        recordChainlinkFulfillment(_requestId)
-    {
-        _timestampAlarm = true;
-    }
-
-    function changeChallenge(address addr) public onlyOwner {
-        require(isClassroomEmpty(), "Classroom: can't change challenge now");
-        _challengeAddress = addr;
-        emit LogChangeChallenge(_challengeAddress);
     }
 
     function isClassroomEmpty() public view returns (bool) {
@@ -238,7 +221,7 @@ contract Classroom is Ownable, ChainlinkClient {
         cToken.mint(balance);
     }
 
-    function studentApply() public {
+    function studentApply() public override {
         require(
             _msgSender() != owner(),
             "Classroom: professor can't be its own student"
@@ -248,51 +231,38 @@ contract Classroom is Ownable, ChainlinkClient {
             "Classroom: student is not registered"
         );
         require(openForApplication, "Classroom: applications closed");
-        Student applicant = Student(_msgSender());
+        IStudent applicant = IStudent(_msgSender());
         require(
             applicant.score() >= minScore,
             "Classroom: student doesn't have enough score"
         );
-        StudentApplication application = _createStudentApplication(applicant);
+        address application = _createStudentApplication(address(applicant));
         _studentApplications.push(application);
     }
 
-    function _createStudentApplication(Student student)
+    function _createStudentApplication(address student)
         internal
-        returns (StudentApplication)
+        returns (address)
     {
-        //TODO: fetch contract from external factory to reduce size
-        StudentApplication newApplication = new StudentApplication(
-            address(student),
+        address newApplication = _studentApplicationFactory.newStudentApplication(
+            student,
             address(this),
             address(daiToken),
             _challengeAddress,
             generateNewSeed()
         );
-        _studentApplicationsLink[address(student)] = address(newApplication);
+        _studentApplicationsLink[student] = newApplication;
         university.registerStudentApplication(
-            address(student),
-            address(newApplication)
+            student,
+            newApplication
         );
-        _studentsLookUp.push(address(student));
-        _applicationsLookUp.push(address(newApplication));
+        _studentsLookUp.push(student);
+        _applicationsLookUp.push(newApplication);
         return newApplication;
     }
 
     function generateNewSeed() internal view returns (bytes32) {
         return blockhash(0) ^ _seed;
-    }
-
-    function viewMyApplication() public view returns (address) {
-        return viewApplication(_msgSender());
-    }
-
-    function viewApplication(address addr) public view returns (address) {
-        require(
-            addr == _msgSender() || _msgSender() == owner(),
-            "Classroom: read permission denied"
-        );
-        return _studentApplicationsLink[addr];
     }
 
     function beginCourse() public onlyOwner {
@@ -302,7 +272,7 @@ contract Classroom is Ownable, ChainlinkClient {
             "Classroom: invest all balance before begin"
         );
         checkApplications();
-        _studentApplications = new StudentApplication[](0);
+        _studentApplications = new address[](0);
         require(
             _validStudentApplications.length > 0,
             "Classroom: no ready application"
@@ -313,11 +283,11 @@ contract Classroom is Ownable, ChainlinkClient {
 
     function checkApplications() internal {
         for (uint256 i = 0; i < _studentApplications.length; i++) {
-            if (_studentApplications[i].applicationState() == 1) {
-                _studentApplications[i].activate();
+            if (IStudentApplication(_studentApplications[i]).applicationState() == 1) {
+                IStudentApplication(_studentApplications[i]).activate();
                 _validStudentApplications.push(_studentApplications[i]);
             } else {
-                _studentApplications[i].expire();
+                IStudentApplication(_studentApplications[i]).expire();
             }
         }
     }
@@ -360,10 +330,11 @@ contract Classroom is Ownable, ChainlinkClient {
         uint256 successCount = 0;
         uint256 emptyCount = 0;
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
-            _validStudentApplications[i].registerFinalAnswer();
-            if (_validStudentApplications[i].applicationState() == 3)
+            IStudentApplication(_validStudentApplications[i]).registerFinalAnswer();
+            uint256 appState = IStudentApplication(_validStudentApplications[i]).applicationState();
+            if (appState == 3)
                 successCount++;
-            if (_validStudentApplications[i].applicationState() == 5)
+            if (appState == 5)
                 emptyCount++;
         }
         return (successCount, emptyCount);
@@ -390,8 +361,9 @@ contract Classroom is Ownable, ChainlinkClient {
             .div(successCount);
         uint256[] memory studentAllowances = new uint256[](nStudents);
         for (uint256 i = 0; i < nStudents; i++) {
-            if (_validStudentApplications[i].applicationState() == 3) {
-                _validStudentApplications[i].accountAllowance(
+            uint256 appState = IStudentApplication(_validStudentApplications[i]).applicationState();
+            if (appState == 3) {
+                IStudentApplication(_validStudentApplications[i]).accountAllowance(
                     studentPrincipalReturn,
                     successStudentPoolShare
                 );
@@ -399,31 +371,42 @@ contract Classroom is Ownable, ChainlinkClient {
                     successStudentPoolShare
                 );
             }
-            if (_validStudentApplications[i].applicationState() == 4) {
-                _validStudentApplications[i].accountAllowance(
+            if (appState == 4) {
+                IStudentApplication(_validStudentApplications[i]).accountAllowance(
                     studentPrincipalReturn,
                     0
                 );
                 studentAllowances[i] = studentPrincipalReturn;
             }
-            if (_validStudentApplications[i].applicationState() == 5)
-                _validStudentApplications[i].accountAllowance(0, 0);
+            if (appState== 5)
+                IStudentApplication(_validStudentApplications[i]).accountAllowance(0, 0);
         }
-        uint256 universityEmptyShare = emptyCount.mul(entryPrice);
+        uint24 uCut = university.cut();
+        return (
+            _calculateUniversityShare(emptyCount, 
+                entryPrice,
+                professorTotalPoolSuccessShare,
+                uCut,
+                nStudents,
+                professorPaymentPerStudent
+            ),
+            studentAllowances
+        );
+    }
+
+    function _calculateUniversityShare(uint256 emptyCount, uint256 _entryPrice, uint256 professorTotalPoolSuccessShare, uint24 uCut, uint256 nStudents, uint professorPaymentPerStudent) internal pure returns (uint){
+        uint256 universityEmptyShare = emptyCount.mul(_entryPrice);
         uint256 universityPaymentShare = professorTotalPoolSuccessShare
-            .mul(university.cut())
+            .mul(uCut)
             .div(10**6);
         uint256 notEmptyCount = nStudents.sub(emptyCount);
         uint256 universitySucessPoolShare = professorPaymentPerStudent
             .mul(notEmptyCount)
-            .mul(university.cut())
+            .mul(uCut)
             .div(10**6);
-        return (
-            universityEmptyShare.add(universityPaymentShare).add(
-                universitySucessPoolShare
-            ),
-            studentAllowances
-        );
+        return universityEmptyShare
+            .add(universityPaymentShare)
+            .add(universitySucessPoolShare);
     }
 
     function _resolveStudentAllowances(uint256[] memory studentAllowances)
@@ -444,26 +427,27 @@ contract Classroom is Ownable, ChainlinkClient {
 
     function _updateStudentScores() internal {
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
-            if (_validStudentApplications[i].applicationState() == 3)
+            uint256 appState = IStudentApplication(_validStudentApplications[i]).applicationState();
+            if (appState == 3)
                 university.addStudentScore(
-                    _validStudentApplications[i].studentAddress(),
+                    IStudentApplication(_validStudentApplications[i]).studentAddress(),
                     1
                 );
-            if (_validStudentApplications[i].applicationState() == 4)
+            if (appState == 4)
                 university.subStudentScore(
-                    _validStudentApplications[i].studentAddress(),
+                    IStudentApplication(_validStudentApplications[i]).studentAddress(),
                     1
                 );
-            if (_validStudentApplications[i].applicationState() == 5)
+            if (appState == 5)
                 university.subStudentScore(
-                    _validStudentApplications[i].studentAddress(),
+                    IStudentApplication(_validStudentApplications[i]).studentAddress(),
                     2
                 );
         }
     }
 
     function _clearClassroom() internal {
-        _validStudentApplications = new StudentApplication[](0);
+        _validStudentApplications = new address[](0);
         withdrawAllResults();
         _totalBalance = 0;
         courseFinished = false;
@@ -481,5 +465,38 @@ contract Classroom is Ownable, ChainlinkClient {
             owner(),
             daiToken.balanceOf(address(this))
         );
+    }
+
+    function _generateSeed() internal {
+        Chainlink.Request memory req = buildChainlinkRequest(
+            _requestIdRandom,
+            address(this),
+            this.fulfillGenerateSeed.selector
+        );
+        sendChainlinkRequestTo(_oracleRandom, req, _oraclePaymentRandom);
+    }
+
+    function fulfillGenerateSeed(bytes32 _requestId, uint256 data)
+        public
+        recordChainlinkFulfillment(_requestId)
+    {
+        _seed = keccak256(MyUtils._toBytes(data));
+    }
+
+    function _setAlarm() internal {
+        Chainlink.Request memory req = buildChainlinkRequest(
+            _requestIdTimestamp,
+            address(this),
+            this.fulfillGetTimestamp.selector
+        );
+        req.addUint("until", now + duration);
+        sendChainlinkRequestTo(_oracleTimestamp, req, _oraclePaymentTimestamp);
+    }
+
+    function fulfillGetTimestamp(bytes32 _requestId)
+        public
+        recordChainlinkFulfillment(_requestId)
+    {
+        _timestampAlarm = true;
     }
 }
