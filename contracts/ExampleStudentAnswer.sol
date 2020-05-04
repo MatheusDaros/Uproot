@@ -1,15 +1,15 @@
 pragma solidity 0.6.6;
 
-import "./IStudentAnswer.sol";
-import "./StudentApplication.sol";
+import "./interface/IStudentAnswer.sol";
+import "./interface/IStudentApplication.sol";
 
 
 contract ExampleStudentAnswer is IStudentAnswer, Ownable {
     bytes32 _seedAnswer;
-    StudentApplication _application;
+    IStudentApplication _application;
 
     constructor(address application) public {
-        _application = StudentApplication(application);
+        _application = IStudentApplication(application);
     }
 
     function getOwner() external view override returns (address) {
