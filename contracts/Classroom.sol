@@ -101,6 +101,8 @@ contract Classroom is Ownable, ChainlinkClient {
         _oraclePaymentTimestamp = oraclePaymentTimestamp;
     }
 
+    //TODO: Buy LINK with DAI using Uniswap
+
     function changeName(bytes32 val) public onlyOwner {
         name = val;
         emit LogChangeName(name);
