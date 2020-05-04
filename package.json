@@ -34,7 +34,9 @@
         "blk-design-system-react"
     ],
     "dependencies": {
+        "@0x/contracts-utils": "^4.4.3",
         "@chainlink/contracts": "^0.0.3",
+        "@opengsn/gsn": "^0.8.4",
         "@openzeppelin/contracts": "3.0.1",
         "@openzeppelin/upgrades": "2.8.0",
         "chart.js": "2.9.3",

@@ -1,10 +1,14 @@
 pragma solidity 0.6.6;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./gambi/BaseRelayRecipient.sol";
+import "./gambi/GSNTypes.sol";
+import "./gambi/IRelayHub.sol";
 import "./Classroom.sol";
 import "./Student.sol";
 import "./StudentApplication.sol";
@@ -23,14 +27,20 @@ interface CERC20 {
 
     function getCash() external returns (uint256);
 
-    function balanceOfUnderlying(address account) external returns (uint256);
+    function balanceOfUnderlying(address) external returns (uint256);
+
+    function borrow(uint256) external returns (uint256);
+
+    function repayBorrow(uint256) external returns (uint256);
+
+    function repayBorrowBehalf(address, uint256) external returns (uint256);
 }
 
 
 //TODO: Natspec Document ENVERYTHING
 //TODO: Sort function order from all contracts
 
-contract University is Ownable, AccessControl {
+contract University is Ownable, AccessControl, BaseRelayRecipient {
     using SafeMath for uint256;
 
     //CLASSLIST_ADMIN_ROLE can add new manually created classes to the list
@@ -70,31 +80,81 @@ contract University is Ownable, AccessControl {
     mapping(address => address[]) _studentApplicationsMapping;
     // Address list of every donor
     address[] _donors;
+    // GSN funds to give students
+    uint256 _studentGSNDeposit;
 
     //TODO: resolve students and classrooms addresses using ENS
 
     CERC20 public cToken;
     IERC20 public daiToken;
+    IRelayHub public relayHub;
 
     constructor(
         bytes32 _name,
         uint24 _cut,
+        uint256 studentGSNDeposit,
         address daiAddress,
-        address compoundAddress
+        address compoundAddress,
+        address relayHubAddress
     ) public {
         name = _name;
         cut = _cut;
+        _studentGSNDeposit = studentGSNDeposit;
         _classList = new Classroom[](0);
         _students = new Student[](0);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         daiToken = IERC20(daiAddress);
         cToken = CERC20(compoundAddress);
+        relayHub = IRelayHub(relayHubAddress);
     }
 
     event LogNewClassroom(bytes32, address);
     event LogChangeName(bytes32);
     event LogChangeCut(uint24);
+    event LogReceived(address, uint256);
+
+    function acceptRelayedCall(
+        GSNTypes.RelayRequest calldata relayRequest,
+        bytes calldata,
+        uint256
+    ) external pure returns (bytes memory context) {
+        require(
+            readBytes4(relayRequest.encodedFunction, 0) ==
+                this.studentSelfRegisterGSN.selector,
+            "University: GSN not enabled for this function"
+        );
+        return abi.encode(relayRequest.target, 0);
+    }
+
+    function readBytes4(bytes memory b, uint256 index)
+        internal
+        pure
+        returns (bytes4 result)
+    {
+        index += 32;
+        assembly {
+            result := mload(add(b, index))
+            result := and(
+                result,
+                0xFFFFFFFF00000000000000000000000000000000000000000000000000000000
+            )
+        }
+        return result;
+    }
+
+    function preRelayedCall(bytes calldata context)
+        external
+        returns (bytes32)
+    {}
+
+    function postRelayedCall(
+        bytes calldata context,
+        bool success,
+        bytes32 preRetVal,
+        uint256 gasUseWithoutPost,
+        GSNTypes.GasData calldata gasData
+    ) external {}
 
     function changeName(bytes32 val) public onlyOwner {
         name = val;
@@ -104,6 +164,10 @@ contract University is Ownable, AccessControl {
     function changeCut(uint24 val) public onlyOwner {
         cut = val;
         emit LogChangeCut(cut);
+    }
+
+    function changeStudentGSNDeposit(uint256 val) public onlyOwner {
+        _studentGSNDeposit = val;
     }
 
     function isValidClassroom(address classroom) public view returns (bool) {
@@ -175,7 +239,29 @@ contract University is Ownable, AccessControl {
         emit LogNewClassroom(cName, address(classroom));
     }
 
-    //TODO: Use GSN to improve UX for new student
+    receive() external payable {
+        emit LogReceived(msg.sender, msg.value);
+    }
+
+    function studentSelfRegisterGSN(bytes32 sName) public {
+        require(
+            _studentApplicationsMapping[_msgSenderGSN()].length == 0,
+            "University: student already registered"
+        );
+        address student = _newStudent(sName, _msgSenderGSN());
+        relayHub.depositFor.value(_studentGSNDeposit)(student);
+    }
+
+    function refillUniversityRelayer(uint256 val) public {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have STUDENT_IDENTITY_ROLE"
+        );
+        relayHub.depositFor.value(val)(address(this));
+    }
+
+    //TODO: Trade DAI for ETH in Uniswap
+
     function studentSelfRegister(bytes32 sName) public {
         require(
             _studentApplicationsMapping[_msgSender()].length == 0,
@@ -184,14 +270,19 @@ contract University is Ownable, AccessControl {
         _newStudent(sName, _msgSender());
     }
 
-    function _newStudent(bytes32 sName, address addr) internal {
+    function _newStudent(bytes32 sName, address caller)
+        internal
+        returns (address)
+    {
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
-        _studentApplicationsMapping[addr].push(address(0));
+        _studentApplicationsMapping[caller].push(address(0));
         //TODO: fetch contract from external factory to reduce size
         Student student = new Student(sName, address(this));
-        student.transferOwnership(addr);
+        student.transferOwnership(caller);
         _students.push(student);
-        grantRole(STUDENT_IDENTITY_ROLE, address(student));
+        address studentAddr = address(student);
+        grantRole(STUDENT_IDENTITY_ROLE, studentAddr);
+        return address(studentAddr);
     }
 
     function registerStudentApplication(address student, address application)
@@ -321,7 +412,7 @@ contract University is Ownable, AccessControl {
         daiToken.approve(to, val);
     }
 
-    //TODO: fund 
+    //TODO: fund
 
     //TODO: manage grants
 

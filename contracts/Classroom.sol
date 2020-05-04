@@ -53,7 +53,7 @@ contract Classroom is Ownable, ChainlinkClient {
         int32 _minScore,
         uint256 _entryPrice,
         uint256 _duration,
-        address universityAddress,
+        address payable universityAddress,
         address challengeAddress,
         address daiAddress,
         address compoundAddress
