@@ -6,8 +6,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./BaseRelayRecipient.sol";
-import "./GSNTypes.sol";
+import "./gambi/BaseRelayRecipient.sol";
+import "./gambi/GSNTypes.sol";
 import "./Classroom.sol";
 import "./Student.sol";
 import "./StudentApplication.sol";
@@ -107,14 +107,13 @@ contract University is Ownable, AccessControl, BaseRelayRecipient {
 
     function acceptRelayedCall(
         GSNTypes.RelayRequest calldata relayRequest,
-        bytes calldata approvalData,
-        uint256 maxPossibleGas
+        bytes calldata,
+        uint256
     )
     external
-    view
+    pure 
     returns (bytes memory context) {
-        (approvalData);
-        require(readBytes4(relayRequest.encodedFunction, 0) == this.studentSelfRegister.selector, "University: GSN not enabled for this function");
+        require(readBytes4(relayRequest.encodedFunction, 0) == this.studentSelfRegisterGSN.selector, "University: GSN not enabled for this function");
         return abi.encode(relayRequest.target, 0);
     }
 
@@ -227,12 +226,21 @@ contract University is Ownable, AccessControl, BaseRelayRecipient {
         emit LogNewClassroom(cName, address(classroom));
     }
 
-    function studentSelfRegister(bytes32 sName) public {
+    function studentSelfRegisterGSN(bytes32 sName) public {
         require(
             _studentApplicationsMapping[_msgSenderGSN()].length == 0,
             "University: student already registered"
         );
         _newStudent(sName, _msgSenderGSN());
+        //TODO: fund student GSNPaymaster
+    }
+
+    function studentSelfRegister(bytes32 sName) public {
+        require(
+            _studentApplicationsMapping[_msgSender()].length == 0,
+            "University: student already registered"
+        );
+        _newStudent(sName, _msgSender());
     }
 
     function _newStudent(bytes32 sName, address addr) internal {
