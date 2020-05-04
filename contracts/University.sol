@@ -71,6 +71,8 @@ contract University is Ownable, AccessControl {
     // Address list of every donor
     address[] _donors;
 
+    //TODO: resolve students and classrooms addresses using ENS
+
     CERC20 public cToken;
     IERC20 public daiToken;
 
@@ -318,6 +320,8 @@ contract University is Ownable, AccessControl {
         );
         daiToken.approve(to, val);
     }
+
+    //TODO: fund 
 
     //TODO: manage grants
 
