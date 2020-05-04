@@ -1,3 +1,4 @@
 {
-    "extends": "solhint:recommended"
+    "extends": "solhint:recommended",
+    "plugins": ["security"]
 }
