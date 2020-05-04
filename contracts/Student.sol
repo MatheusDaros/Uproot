@@ -1,16 +1,19 @@
 pragma solidity 0.6.6;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./gambi/BaseRelayRecipient.sol";
+import "./gambi/GSNTypes.sol";
 import "./Classroom.sol";
 import "./University.sol";
 import "./StudentApplication.sol";
 
 
-contract Student is Ownable, AccessControl {
+contract Student is Ownable, AccessControl, BaseRelayRecipient {
     using SafeMath for uint256;
 
     //READ_SCORE_ROLE can read student Score
@@ -38,6 +41,37 @@ contract Student is Ownable, AccessControl {
             grantRole(DEFAULT_ADMIN_ROLE, universityAddress);
             renounceRole(DEFAULT_ADMIN_ROLE, _msgSender());
         }
+    }
+
+    function acceptRelayedCall(
+        GSNTypes.RelayRequest calldata relayRequest,
+        bytes calldata,
+        uint256
+    )
+    external
+    pure 
+    returns (bytes memory context) {
+        require(_msgSenderGSN() == owner(), "Student: GSN enabled only for the student");
+        return abi.encode(relayRequest.target, 0);
+    }
+
+    function preRelayedCall(bytes calldata context) external returns (bytes32) {
+
+    }
+
+    function postRelayedCall(
+        bytes calldata context,
+        bool success,
+        bytes32 preRetVal,
+        uint256 gasUseWithoutPost,
+        GSNTypes.GasData calldata gasData
+    ) external {
+
+    }
+
+    function changeName(bytes32 val) public onlyOwner {
+        name = val;
+        emit LogChangeName(name);
     }
 
     event LogChangeName(bytes32);
