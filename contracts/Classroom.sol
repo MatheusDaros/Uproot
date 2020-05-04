@@ -5,18 +5,19 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "./University.sol";
 import "./Student.sol";
 import "./StudentApplication.sol";
 import "./IClassroomChallenge.sol";
 
 
-contract Classroom is Ownable {
-    using SafeMath for uint256;
-
+contract Classroom is Ownable, ChainlinkClient {
     University public university;
     bool public openForApplication;
     bool public courseFinished;
+    bool public classroomActive;
+    bool _timestampAlarm;
     StudentApplication[] _studentApplications;
     StudentApplication[] _validStudentApplications;
     mapping(address => address) _studentApplicationsLink;
@@ -24,6 +25,7 @@ contract Classroom is Ownable {
     address[] _applicationsLookUp;
     uint256 _endDate;
     uint256 _totalBalance;
+    bytes32 _seed;
 
     //Classroom parameters
     bytes32 public name;
@@ -32,13 +34,17 @@ contract Classroom is Ownable {
     int32 public minScore;
     uint256 public entryPrice;
     uint256 public duration;
-    bytes32 _seed;
 
     IERC20 public daiToken;
     CERC20 public cToken;
     address public _challengeAddress;
 
-    bool public classroomActive;
+    address _oracleRandom;
+    bytes32 _requestIdRandom;
+    uint256 _oraclePaymentRandom;
+    address _oracleTimestamp;
+    bytes32 _requestIdTimestamp;
+    uint256 _oraclePaymentTimestamp;
 
     constructor(
         bytes32 _name,
@@ -48,9 +54,9 @@ contract Classroom is Ownable {
         uint256 _entryPrice,
         uint256 _duration,
         address universityAddress,
+        address challengeAddress,
         address daiAddress,
-        address compoundAddress,
-        address challengeAddress
+        address compoundAddress
     ) public {
         name = _name;
         principalCut = _principalCut;
@@ -59,13 +65,12 @@ contract Classroom is Ownable {
         entryPrice = _entryPrice;
         duration = _duration;
         university = University(universityAddress);
+        _challengeAddress = challengeAddress;
         openForApplication = false;
         classroomActive = false;
-        //Kovan address
         daiToken = IERC20(daiAddress);
         cToken = CERC20(compoundAddress);
-        _challengeAddress = challengeAddress;
-        _seed = generateSeed();
+        _generateSeed();
     }
 
     event LogOpenApplications();
@@ -78,6 +83,23 @@ contract Classroom is Ownable {
     event LogChangeMinScore(int32);
     event LogChangeEntryPrice(uint256);
     event LogChangeDuration(uint256);
+
+    // @dev "Stack too deep" error if done in the constructor
+    function configureOracles(
+        address oracleRandom,
+        bytes32 requestIdRandom,
+        uint256 oraclePaymentRandom,
+        address oracleTimestamp,
+        bytes32 requestIdTimestamp,
+        uint256 oraclePaymentTimestamp
+    ) public onlyOwner {
+        _oracleRandom = oracleRandom;
+        _requestIdRandom = requestIdRandom;
+        _oraclePaymentRandom = oraclePaymentRandom;
+        _oracleTimestamp = oracleTimestamp;
+        _requestIdTimestamp = requestIdTimestamp;
+        _oraclePaymentTimestamp = oraclePaymentTimestamp;
+    }
 
     function changeName(bytes32 val) public onlyOwner {
         name = val;
@@ -127,13 +149,44 @@ contract Classroom is Ownable {
         return _studentsLookUp;
     }
 
-    function generateSeed() internal pure returns (bytes32) {
-        //TODO:
-        return "RANDOM";
+    function _generateSeed() internal {
+        Chainlink.Request memory req = buildChainlinkRequest(
+            _requestIdRandom,
+            address(this),
+            this.fulfillGenerateSeed.selector
+        );
+        sendChainlinkRequestTo(_oracleRandom, req, _oraclePaymentRandom);
     }
 
-    function viewSeed() public view onlyOwner returns (bytes32) {
-        return _seed;
+    function fulfillGenerateSeed(bytes32 _requestId, uint256 data)
+        public
+        recordChainlinkFulfillment(_requestId)
+    {
+        _seed = keccak256(_toBytes(data));
+    }
+
+    function _toBytes(uint256 x) internal pure returns (bytes memory b) {
+        b = new bytes(32);
+        assembly {
+            mstore(add(b, 32), x)
+        }
+    }
+
+    function _setAlarm() internal {
+        Chainlink.Request memory req = buildChainlinkRequest(
+            _requestIdTimestamp,
+            address(this),
+            this.fulfillGetTimestamp.selector
+        );
+        req.addUint("until", now + duration);
+        sendChainlinkRequestTo(_oracleTimestamp, req, _oraclePaymentTimestamp);
+    }
+
+    function fulfillGetTimestamp(bytes32 _requestId)
+        public
+        recordChainlinkFulfillment(_requestId)
+    {
+        _timestampAlarm = true;
     }
 
     function changeChallenge(address addr) public onlyOwner {
@@ -141,8 +194,6 @@ contract Classroom is Ownable {
         _challengeAddress = addr;
         emit LogChangeChallenge(_challengeAddress);
     }
-
-    //TODO: allow teacher to setup a custom challenge
 
     function isClassroomEmpty() public view returns (bool) {
         return
@@ -213,7 +264,7 @@ contract Classroom is Ownable {
             address(this),
             address(daiToken),
             _challengeAddress,
-            _seed
+            generateNewSeed()
         );
         _studentApplicationsLink[address(student)] = address(newApplication);
         university.registerStudentApplication(
@@ -223,6 +274,10 @@ contract Classroom is Ownable {
         _studentsLookUp.push(address(student));
         _applicationsLookUp.push(address(newApplication));
         return newApplication;
+    }
+
+    function generateNewSeed() internal view returns (bytes32) {
+        return blockhash(0) ^ _seed;
     }
 
     function viewMyApplication() public view returns (address) {
@@ -250,8 +305,7 @@ contract Classroom is Ownable {
             "Classroom: no ready application"
         );
         classroomActive = true;
-        //TODO: use oracle
-        _endDate = block.timestamp.add(duration);
+        _setAlarm();
     }
 
     function checkApplications() internal {
@@ -266,11 +320,7 @@ contract Classroom is Ownable {
     }
 
     function finishCourse() public onlyOwner {
-        //TODO: use oracle
-        require(
-            _endDate <= block.timestamp,
-            "Classroom: too soon to finish course"
-        );
+        require(_timestampAlarm, "Classroom: too soon to finish course");
         require(
             _validStudentApplications.length > 0,
             "Classroom: no applications"
@@ -414,6 +464,12 @@ contract Classroom is Ownable {
         withdrawAllResults();
         _totalBalance = 0;
         courseFinished = false;
+        _timestampAlarm = false;
+        _mutateSeed();
+    }
+
+    function _mutateSeed() internal {
+        _seed = (_seed & blockhash(0)) | (_seed & blockhash(1));
     }
 
     function withdrawAllResults() public onlyOwner {
