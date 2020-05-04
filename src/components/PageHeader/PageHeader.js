@@ -18,9 +18,22 @@
 import React from "react";
 
 // reactstrap components
-import { Container } from "reactstrap";
+import { Container, Nav, NavItem, NavLink } from "reactstrap";
+import classnames from "classnames";
 
 class PageHeader extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      pills: 1
+    };
+  }
+  toggleTabs = (e, stateName, index) => {
+    e.preventDefault();
+    this.setState({
+      [stateName]: index
+    });
+  };
   render() {
     return (
       <div className="page-header header-filter">

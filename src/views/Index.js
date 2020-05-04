@@ -2,7 +2,6 @@ import React from "react";
 
 // core components
 import IndexNavbar from "components/Navbars/IndexNavbar.js";
-import PageHeader from "components/PageHeader/PageHeader.js";
 import Footer from "components/Footer/Footer.js";
 
 // sections for this page/view
@@ -20,6 +19,9 @@ import Download from "views/IndexSections/Download.js";
 
 //Tapioca
 import Courses from "views/Landing/Courses.js";
+import Info from "views/Landing/Info.js";
+import LandingTabs from "views/Landing/LandingTabs.js";
+
 
 class Index extends React.Component {
   componentDidMount() {
@@ -33,19 +35,9 @@ class Index extends React.Component {
       <>
         <IndexNavbar />
         <div className="wrapper">
-          <PageHeader />
           <div className="main">
-            <Courses />
-            <Basics />
-            <Navbars />
-            <Tabs />
-            <Pagination />
-            <Notifications />
-            <Typography />
-            <JavaScript />
-            <NucleoIcons />
+            <LandingTabs/>
             <Signup />
-            <Examples />
             <Download />
           </div>
           <Footer />

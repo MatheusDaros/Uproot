@@ -104,12 +104,9 @@ class ComponentsNavbar extends React.Component {
               tag={Link}
               id="navbar-brand"
             >
-              <span>TApp • </span>
-              Tapioca System React
+              <span>DeEd • </span>
+              Descentralized University
             </NavbarBrand>
-            <UncontrolledTooltip placement="bottom" target="navbar-brand">
-              Github
-            </UncontrolledTooltip>
             <button
               aria-expanded={this.state.collapseOpen}
               className="navbar-toggler navbar-toggler"
@@ -131,7 +128,7 @@ class ComponentsNavbar extends React.Component {
               <Row>
                 <Col className="collapse-brand" xs="6">
                   <a href="#pablo" onClick={e => e.preventDefault()}>
-                    TapiocaApp
+                  DeEd
                   </a>
                 </Col>
                 <Col className="collapse-close text-right" xs="6">
@@ -151,8 +148,8 @@ class ComponentsNavbar extends React.Component {
                   tag={Link} to="/landing"
                   title="Home"
                 >
-                  <i className="fa fa-home" />
-                  <p className="d-lg-none d-xl-none">Home</p>
+                  <i className="tim-icons icon-atom" />
+                  <p className="d-lg-none d-xl-none">Classrooms</p>
                 </NavLink>
               </NavItem>
               <NavItem className="p-0">
@@ -160,8 +157,26 @@ class ComponentsNavbar extends React.Component {
                   tag={Link} to="/user"
                   title="My Account"
                 >
-                  <i className="fa fa-user" />
-                  <p className="d-lg-none d-xl-none">My Account</p>
+                  <i className="tim-icons icon-single-02" />
+                  <p className="d-lg-none d-xl-none">Alumini</p>
+                </NavLink>
+              </NavItem>
+              <NavItem className="p-0">
+                <NavLink
+                  tag={Link} to="/user"
+                  title="My Account"
+                >
+                  <i className="tim-icons icon-planet" />
+                  <p className="d-lg-none d-xl-none">University</p>
+                </NavLink>
+              </NavItem>
+              <NavItem className="p-0">
+                <NavLink
+                  tag={Link} to="/user"
+                  title="My Account"
+                >
+                  <i className="tim-icons icon-support-17" />
+                  <p className="d-lg-none d-xl-none">Secretary</p>
                 </NavLink>
               </NavItem>
               <NavItem className="p-0">

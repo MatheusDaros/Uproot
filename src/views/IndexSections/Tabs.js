@@ -31,6 +31,7 @@ import {
   NavItem,
   NavLink
 } from "reactstrap";
+import AllCourses from "views/Landing/AllCourses";
 
 class Tabs extends React.Component {
   constructor(props) {
@@ -62,44 +63,56 @@ class Tabs extends React.Component {
               </div>
               <Card>
                 <CardHeader>
-                  <Nav className="nav-tabs-info" role="tablist" tabs>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({
-                          active: this.state.iconTabs === 1
-                        })}
-                        onClick={e => this.toggleTabs(e, "iconTabs", 1)}
-                        href="#pablo"
-                      >
-                        <i className="tim-icons icon-spaceship" />
-                        Profile
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({
-                          active: this.state.iconTabs === 2
-                        })}
-                        onClick={e => this.toggleTabs(e, "iconTabs", 2)}
-                        href="#pablo"
-                      >
-                        <i className="tim-icons icon-settings-gear-63" />
-                        Settings
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({
-                          active: this.state.iconTabs === 3
-                        })}
-                        onClick={e => this.toggleTabs(e, "iconTabs", 3)}
-                        href="#pablo"
-                      >
-                        <i className="tim-icons icon-bag-16" />
-                        Options
-                      </NavLink>
-                    </NavItem>
-                  </Nav>
+                <Nav className='nav-pills-warning nav-pills-icons align-items-center' pills>
+                <NavItem>
+                  <NavLink
+                    className={classnames({
+                      "active show": this.state.pills === 1
+                    })}
+                    onClick={e => this.toggleTabs(e, "pills", 1)}
+                    href="#classes"
+                  >
+                    <i className="tim-icons icon-atom" />
+                    Classes
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    className={classnames({
+                      "active show": this.state.pills === 2
+                    })}
+                    onClick={e => this.toggleTabs(e, "pills", 2)}
+                    href="#account"
+                  >
+                    <i className="tim-icons icon-single-02" />
+                    Alummini
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    className={classnames({
+                      "active show": this.state.pills === 3
+                    })}
+                    onClick={e => this.toggleTabs(e, "pills", 3)}
+                    href="#university"
+                  >
+                    <i className="tim-icons icon-planet" />
+                    University
+                  </NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink
+                    className={classnames({
+                      "active show": this.state.pills === 4
+                    })}
+                    onClick={e => this.toggleTabs(e, "pills", 4)}
+                    href="#Info"
+                  >
+                    <i className="tim-icons icon-support-17" />
+                    Secretary
+                  </NavLink>
+                </NavItem>
+              </Nav>
                 </CardHeader>
                 <CardBody>
                   <TabContent
@@ -107,14 +120,7 @@ class Tabs extends React.Component {
                     activeTab={"link" + this.state.iconTabs}
                   >
                     <TabPane tabId="link1">
-                      <p>
-                        Collaboratively administrate empowered markets via
-                        plug-and-play networks. Dynamically procrastinate B2C
-                        users after installed base benefits. <br />
-                        <br />
-                        Dramatically visualize customer directed convergence
-                        without revolutionary ROI.
-                      </p>
+                    <AllCourses/>
                     </TabPane>
                     <TabPane tabId="link2">
                       <p>

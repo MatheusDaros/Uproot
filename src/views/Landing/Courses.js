@@ -13,7 +13,8 @@ import {
     CardTitle,
     CardImg,
     CardBody,
-    Progress
+    Progress,
+    Table
 } from "reactstrap";
 
 class Courses extends React.Component {
@@ -25,14 +26,14 @@ class Courses extends React.Component {
     }
     render() {
         return (
-            <div className="section section-basic" id="basic-elements">
-                <img alt="..." className="path" src={require("assets/img/path1.png")} />
+            <>
+
                 <Container>
                     <Row>
                         <Col>
                             <Card>
                                 <CardHeader><h1>Learn Solidity</h1>
-                                    <Badge href="#" color="default">Beginner</Badge>
+                                    <Badge href="#" color="success">Beginner</Badge>
                                     <p className='mt-2'>Its had resolving otherwise she contented therefore. Afford relied warmth out sir hearts sister use garden.</p> </CardHeader>
                                 <CardBody className='mt-0'>
                                     <Row>
@@ -101,17 +102,14 @@ class Courses extends React.Component {
                                     </Row>
                                     <div className="text-center">75%</div>
                                     <Progress color="success" className='mb-4' value={75} />
-                                    <ButtonGroup className='mb-4'>
-                                        <Button color="info">Apply Now</Button>{' '}
-                                        <Button color="success">Fund Now</Button>{' '}
-                                    </ButtonGroup>
+                                    <Button className='btn btn-block mb-4' color="info">Apply Now</Button>{' '}
                                 </CardBody>
                             </Card>
                         </Col>
                         <Col>
                             <Card>
                                 <CardHeader><h1>Learn Solidity</h1>
-                                    <Badge href="#" color="default">Beginner</Badge>
+                                    <Badge href="#" color="success">Beginner</Badge>
                                     <p className='mt-2'>Its had resolving otherwise she contented therefore. Afford relied warmth out sir hearts sister use garden.</p> </CardHeader>
                                 <CardBody className='mt-0'>
                                     <Row>
@@ -180,17 +178,14 @@ class Courses extends React.Component {
                                     </Row>
                                     <div className="text-center">75%</div>
                                     <Progress color="success" className='mb-4' value={75} />
-                                    <ButtonGroup className='mb-4'>
-                                        <Button color="info">Apply Now</Button>{' '}
-                                        <Button color="success">Fund Now</Button>{' '}
-                                    </ButtonGroup>
+                                    <Button className='btn btn-block mb-4' color="info">Apply Now</Button>{' '}
                                 </CardBody>
                             </Card>
                         </Col>
                         <Col>
                             <Card>
                                 <CardHeader><h1>Learn Solidity</h1>
-                                    <Badge href="#" color="default">Beginner</Badge>
+                                    <Badge href="#" color="success">Beginner</Badge>
                                     <p className='mt-2'>Its had resolving otherwise she contented therefore. Afford relied warmth out sir hearts sister use garden.</p> </CardHeader>
                                 <CardBody className='mt-0'>
                                     <Row>
@@ -259,16 +254,14 @@ class Courses extends React.Component {
                                     </Row>
                                     <div className="text-center">75%</div>
                                     <Progress color="success" className='mb-4' value={75} />
-                                    <ButtonGroup className='mb-4'>
-                                        <Button color="info">Apply Now</Button>{' '}
-                                        <Button color="success">Fund Now</Button>{' '}
-                                    </ButtonGroup>
+                                    <Button className='btn btn-block mb-4' color="info">Apply Now</Button>{' '}
+
                                 </CardBody>
                             </Card>
                         </Col>
                     </Row>
                 </Container>
-            </div>
+            </>
         );
     }
 }
