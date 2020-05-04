@@ -1,6 +1,6 @@
 pragma solidity 0.6.6;
 
-import "./IClassroomChallenge.sol";
+import "./interface/IClassroomChallenge.sol";
 
 
 contract ExampleChallenge is IClassroomChallenge {
