@@ -9,6 +9,7 @@ import "./Classroom.sol";
 import "./University.sol";
 import "./StudentApplication.sol";
 
+
 contract Student is Ownable, AccessControl {
     using SafeMath for uint256;
 
@@ -46,25 +47,37 @@ contract Student is Ownable, AccessControl {
         emit LogChangeName(name);
     }
 
-    function score() public view returns(int32) {
-        require(hasRole(READ_SCORE_ROLE, _msgSender()), "Student: caller doesn't have READ_SCORE_ROLE");
+    function score() public view returns (int32) {
+        require(
+            hasRole(READ_SCORE_ROLE, _msgSender()),
+            "Student: caller doesn't have READ_SCORE_ROLE"
+        );
         return _score;
     }
 
-    function addScore(int32 val) public  {
-        require(hasRole(MODIFY_SCORE_ROLE, _msgSender()), "Student: caller doesn't have MODIFY_SCORE_ROLE");
+    function addScore(int32 val) public {
+        require(
+            hasRole(MODIFY_SCORE_ROLE, _msgSender()),
+            "Student: caller doesn't have MODIFY_SCORE_ROLE"
+        );
         require(_score < _score + val, "Student: good grades overflow");
         _score += val;
     }
 
-    function subScore(int32 val) public  {
-        require(hasRole(MODIFY_SCORE_ROLE, _msgSender()), "Student: caller doesn't have MODIFY_SCORE_ROLE");
+    function subScore(int32 val) public {
+        require(
+            hasRole(MODIFY_SCORE_ROLE, _msgSender()),
+            "Student: caller doesn't have MODIFY_SCORE_ROLE"
+        );
         require(_score > _score - val, "Student: bad grades overflow");
         _score -= val;
     }
 
     function applyToClassroom(address classroomAddress) public onlyOwner {
-        require(_university.isValidClassroom(classroomAddress), "Student: address is not a valid classroom");
+        require(
+            _university.isValidClassroom(classroomAddress),
+            "Student: address is not a valid classroom"
+        );
         grantRole(READ_SCORE_ROLE, classroomAddress);
         Classroom(classroomAddress).studentApply();
         _classroomAddress.push(classroomAddress);
@@ -72,29 +85,68 @@ contract Student is Ownable, AccessControl {
 
     // not a feature but it is something a teacher would sometimes want to do
     function removeFromMyClassroom() public {
-        for (uint i = 0; i < _classroomAddress.length; i++) {
-            if (_classroomAddress[i] == _msgSender()) _classroomAddress[i] = address(0);
+        for (uint256 i = 0; i < _classroomAddress.length; i++) {
+            if (_classroomAddress[i] == _msgSender())
+                _classroomAddress[i] = address(0);
         }
     }
 
-    function withdrawAllResultsFromClassroom(address classroom, address to) public onlyOwner {
-        withdrawAllResultsFromApplication(Classroom(classroom).viewMyApplication(), to);
+    function withdrawAllResultsFromClassroom(address classroom, address to)
+        public
+        onlyOwner
+    {
+        withdrawAllResultsFromApplication(
+            Classroom(classroom).viewMyApplication(),
+            to
+        );
     }
 
-    function withdrawResultsFromClassroom(address classroom, address to, uint val) public onlyOwner {
-        withdrawResultsFromApplication(Classroom(classroom).viewMyApplication(), to, val);
+    function withdrawResultsFromClassroom(
+        address classroom,
+        address to,
+        uint256 val
+    ) public onlyOwner {
+        withdrawResultsFromApplication(
+            Classroom(classroom).viewMyApplication(),
+            to,
+            val
+        );
     }
 
-    function withdrawAllResultsFromApplication(address application, address to) public onlyOwner {
+    function withdrawAllResultsFromApplication(address application, address to)
+        public
+        onlyOwner
+    {
         StudentApplication(application).withdrawAllResults(to);
     }
 
-    function withdrawResultsFromApplication(address application, address to, uint val) public onlyOwner {
+    function withdrawResultsFromApplication(
+        address application,
+        address to,
+        uint256 val
+    ) public onlyOwner {
         StudentApplication(application).withdrawResults(to, val);
     }
 
-    function requestClassroom(address applicationAddr, bytes32 cName, uint24 cCut, uint24 cPCut,
-            int32 minScore, uint entryPrice, uint duration, address challenge) public onlyOwner {
-        _university.studentRequestClassroom(applicationAddr, cName, cCut, cPCut, minScore, entryPrice, duration, challenge);
+    function requestClassroom(
+        address applicationAddr,
+        bytes32 cName,
+        uint24 cCut,
+        uint24 cPCut,
+        int32 minScore,
+        uint256 entryPrice,
+        uint256 duration,
+        address challenge
+    ) public onlyOwner {
+        _university.studentRequestClassroom(
+            applicationAddr,
+            cName,
+            cCut,
+            cPCut,
+            minScore,
+            entryPrice,
+            duration,
+            challenge
+        );
     }
 }
