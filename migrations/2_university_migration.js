@@ -10,8 +10,11 @@ const studentGSNDeposit = Web3.utils.asciiToHex(process.env.UNIVERSITY_GSNDEPOSI
 const daiAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const compoundAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 const relayHubAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+const classroomFactoryAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+const studentFactoryAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+const studentApplicationFactoryAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
 
 module.exports = function(deployer) {
-  deployer.deploy(Migrations, name, cut, studentGSNDeposit, daiAddress, compoundAddress, relayHubAddress);
+    deployer.deploy(Migrations, name, cut, studentGSNDeposit, daiAddress, compoundAddress, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress);
 };
