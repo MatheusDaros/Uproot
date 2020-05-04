@@ -29,7 +29,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
     IERC20 public daiToken;
     CERC20 public cToken;
 
-    constructor(bytes32 _name, address universityAddress) public {
+    constructor(bytes32 _name, address payable universityAddress) public {
         name = _name;
         _score = 0;
         _university = University(universityAddress);
@@ -49,7 +49,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         uint256
     )
     external
-    pure 
+    view 
     returns (bytes memory context) {
         require(_msgSenderGSN() == owner(), "Student: GSN enabled only for the student");
         return abi.encode(relayRequest.target, 0);
@@ -67,11 +67,6 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient {
         GSNTypes.GasData calldata gasData
     ) external {
 
-    }
-
-    function changeName(bytes32 val) public onlyOwner {
-        name = val;
-        emit LogChangeName(name);
     }
 
     event LogChangeName(bytes32);
