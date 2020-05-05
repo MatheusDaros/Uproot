@@ -12,7 +12,6 @@ import "./gambi/IRelayHub.sol";
 import "./interface/IClassroom.sol";
 import "./interface/IStudent.sol";
 import "./interface/IStudentApplication.sol";
-import "./interface/IGrantsManager.sol";
 import "./interface/IClassroomFactory.sol";
 import "./interface/IStudentFactory.sol";
 import "./interface/IStudentApplicationFactory.sol";
@@ -133,13 +132,14 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return hasRole(STUDENT_IDENTITY_ROLE, student);
     }
 
-    function viewMyApplications() public view returns (address[] memory) {
+    function viewMyApplications() public view override returns (address[] memory) {
         return viewStudentApplications(_msgSender());
     }
 
     function viewStudentApplications(address addr)
         public
         view
+        override
         returns (address[] memory)
     {
         require(
@@ -347,6 +347,14 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
         daiToken.approve(to, val);
+    }
+
+    function giveGrant(address studentApplication) public override {
+        require(
+            hasRole(GRANTS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have GRANTS_MANAGER_ROLE"
+        );
+        IStudentApplication(studentApplication).payEntryPrice();
     }
 
     function acceptRelayedCall(

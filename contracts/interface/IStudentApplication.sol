@@ -2,6 +2,8 @@ pragma solidity 0.6.6;
 
 interface IStudentApplication {
 
+    function entryPrice() external view returns (uint256);
+
     function registerAnswer() external;
 
     function studentAddress() external view returns (address);
@@ -13,6 +15,8 @@ interface IStudentApplication {
     function withdrawAllResults(address) external; 
 
     function withdrawResults(address to, uint256 val) external;
+
+    function payEntryPrice() external;
 
     function activate() external;
 
