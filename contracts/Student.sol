@@ -8,10 +8,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
+import "./interface/IStudent.sol";
 import "./interface/IClassroom.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IStudentApplication.sol";
 import "./interface/IGrantsManager.sol";
+import "./MyUtils.sol";
 
 
 contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
@@ -155,6 +157,13 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
             duration,
             challenge
         );
+    }
+
+    function requestGrant(address grantsManager, address studentApplication) public onlyOwner {
+        require(MyUtils.searchInsideArray(address(this), _university.viewMyApplications()), "Student: wrong application address");
+        uint256 price = IStudentApplication(studentApplication).entryPrice();
+        grantRole(READ_SCORE_ROLE, grantsManager);
+        IGrantsManager(grantsManager).studentRequestGrant(price, studentApplication);
     }
 
     function transferOwnershipStudent(address newOwner) public override {
