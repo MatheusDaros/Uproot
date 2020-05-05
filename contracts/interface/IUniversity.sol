@@ -2,6 +2,8 @@ pragma solidity 0.6.6;
 
 
 interface IUniversity {
+    function name() external view returns (bytes32);
+
     function cut() external view returns (uint24);
 
     function isValidClassroom(address) external view returns (bool);

@@ -55,7 +55,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     );
 
     // Parameter: Name of this University
-    bytes32 public name;
+    bytes32 public override name;
     // Parameter: University cut from professor (Parts per Million)
     uint24 public override cut;
     // Parameter: GSN funds to give students
