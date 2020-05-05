@@ -58,16 +58,18 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     bytes32 public name;
     // Parameter: University cut from professor (Parts per Million)
     uint24 public override cut;
+    // Parameter: GSN funds to give students
+    uint256 _studentGSNDeposit;
     // List of every registered classroom
     address[] public _classList;
     // List of every student
     address[] _students;
     // Mapping of each student's applications
     mapping(address => address[]) _studentApplicationsMapping;
-    // Address list of every donor
-    address[] _donors;
-    // GSN funds to give students
-    uint256 _studentGSNDeposit;
+    // Mapping of every donor and donations
+    mapping(address => uint256) public donators;
+    // Total amount of donations received so far
+    uint256 public donationsReceived;
 
     //TODO: resolve students and classrooms addresses using ENS
 
@@ -406,7 +408,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     //TODO: Trade DAI for ETH in Uniswap
 
-    //TODO: fund
+    //TODO: Allow donations in ETH and convert to DAI in Uniswap
+
+    function donateDai(uint256 donation) public override {
+        daiToken.transferFrom(_msgSender(), address(this), donation);
+        donators[_msgSender()] = donators[_msgSender()].add(donation);
+    }
 
     //TODO: manage grants governance
 
