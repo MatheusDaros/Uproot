@@ -29,6 +29,7 @@ contract StudentApplication is Ownable, IStudentApplication {
     bool _hasAnswer;
     uint256 _principalReturned;
     uint256 _completionPrize;
+    uint256 _entryPrice;
 
     constructor(
         address studentAddress,
@@ -44,6 +45,7 @@ contract StudentApplication is Ownable, IStudentApplication {
         daiToken = IERC20(daiAddress);
         _seed = seed;
         _challenge = IClassroomChallenge(challengeAddress);
+        _entryPrice = IClassroom(_classroomAddress).entryPrice();
     }
 
     function studentAddress() public view override onlyOwner returns (address) {
@@ -58,6 +60,14 @@ contract StudentApplication is Ownable, IStudentApplication {
         return uint256(_applicationState);
     }
 
+    function entryPrice() public view override returns (uint256) {
+        require(
+            _msgSender() == _studentAddress || _msgSender() == owner(),
+            "StudentApplication: read permission denied"
+        );
+        return _entryPrice;
+    }
+
     function challengeAddress() public view returns (address) {
         require(
             _msgSender() == _studentAddress || _msgSender() == owner(),
@@ -66,7 +76,7 @@ contract StudentApplication is Ownable, IStudentApplication {
         return address(_challenge);
     }
 
-    function payEntryPrice() external {
+    function payEntryPrice() external override {
         require(
             _applicationState == ApplicationState.New,
             "StudentApplication: application is not New"
@@ -75,7 +85,7 @@ contract StudentApplication is Ownable, IStudentApplication {
             daiToken.transferFrom(
                 msg.sender,
                 _classroomAddress,
-                IClassroom(_classroomAddress).entryPrice()
+                _entryPrice
             ),
             "StudentApplication: could not transfer DAI"
         );

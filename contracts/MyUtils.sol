@@ -1,5 +1,6 @@
 pragma solidity 0.6.6;
 
+
 library MyUtils {
     function readBytes4(bytes memory b, uint256 index)
         internal
@@ -22,6 +23,17 @@ library MyUtils {
         assembly {
             mstore(add(b, 32), x)
         }
+    }
+
+    function searchInsideArray(address search, address[] memory array)
+        internal
+        pure
+        returns (bool)
+    {
+        for (uint256 i = 0; i < array.length; i++) {
+            if (array[i] == search) return true;
+        }
+        return false;
     }
 }
 
@@ -47,4 +59,3 @@ interface CERC20 {
 
     function repayBorrowBehalf(address, uint256) external returns (uint256);
 }
-
