@@ -16,6 +16,7 @@ import "./interface/IClassroomFactory.sol";
 import "./interface/IStudentFactory.sol";
 import "./interface/IStudentApplicationFactory.sol";
 import "./interface/IUniversity.sol";
+import "./interface/IGrantsManager.sol";
 import "./MyUtils.sol";
 
 //TODO: Natspec Document ENVERYTHING
@@ -47,6 +48,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// CLASSROOM_PROFESSOR_ROLE can manage itself inside the University and registering student applications
     bytes32 public constant CLASSROOM_PROFESSOR_ROLE = keccak256(
         "CLASSROOM_PROFESSOR_ROLE"
+    );
+    /// UNIVERSITY_OVERSEER_ROLE can inspect Grant Managers and Fund Managers, and present cases for funders to vote upon
+    bytes32 public constant UNIVERSITY_OVERSEER_ROLE = keccak256(
+        "UNIVERSITY_OVERSEER_ROLE"
     );
 
     // Parameter: Name of this University
@@ -357,6 +362,27 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IStudentApplication(studentApplication).payEntryPrice();
     }
 
+    function viewAllStudentsFromGrantManager(
+            address grantsManager
+        ) public returns (address[] memory) {
+        require(
+            hasRole(UNIVERSITY_OVERSEER_ROLE, _msgSender()),
+            "University: caller doesn't have UNIVERSITY_OVERSEER_ROLE"
+        );
+        return IGrantsManager(grantsManager).viewAllStudents();
+    }
+
+    function viewAllStudentGrantsFromGrantManager(
+            address student, 
+            address grantsManager
+        ) public returns (uint256[] memory) {
+        require(
+            hasRole(UNIVERSITY_OVERSEER_ROLE, _msgSender()),
+            "University: caller doesn't have UNIVERSITY_OVERSEER_ROLE"
+        );
+        return IGrantsManager(grantsManager).viewAllGrantsForStudent(student);
+    }
+
     function acceptRelayedCall(
         GSNTypes.RelayRequest calldata relayRequest,
         bytes calldata,
@@ -382,7 +408,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     //TODO: fund
 
-    //TODO: manage grants
+    //TODO: manage grants governance
 
     //TODO: implement funds manager
 
