@@ -36,4 +36,6 @@ interface IUniversity {
     function subStudentScore(address, int32) external;
 
     function giveGrant(address) external;
+
+    function donateDai(uint256) external;
 }
