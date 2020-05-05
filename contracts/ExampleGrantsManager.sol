@@ -13,7 +13,9 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
 
     address _universityAddress;
 
-    mapping(address => bool) _selectedStudents;
+    mapping(address => uint256[]) _grantsLookup;
+    address[] _studentsLookup;
+    mapping(address => bool) _preApprovedStudents;
     uint32 _requiredAvg;
     uint32 _requiredCount;
     uint256 _maximumPrice;
@@ -35,7 +37,23 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
     }
 
     function markStudent(address student, bool val) public onlyOwner {
-        _selectedStudents[student] = val;
+        _preApprovedStudents[student] = val;
+    }
+
+    function viewAllStudents() public override returns (address[] memory) {
+        require(
+            _msgSender() == _universityAddress || _msgSender() == owner(),
+            "GrantsManager: Read permission denied"
+        );
+        return _studentsLookup;
+    }
+
+    function viewAllGrantsForStudent(address student) public override returns (uint256[] memory){
+        require(
+            _msgSender() == _universityAddress || _msgSender() == owner(),
+            "GrantsManager: Read permission denied"
+        );
+        _grantsLookup[student];
     }
 
     function giveGrant(address studentApplication) internal {
@@ -53,9 +71,11 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
         );
         if (price > _maximumPrice) return false;
         if (
-            _selectedStudents[_msgSender()] || _approvalCriteria(_msgSender())
+            _preApprovedStudents[_msgSender()] || _approvalCriteria(_msgSender())
         ) {
             giveGrant(studentApplication);
+            _studentsLookup.push(_msgSender());
+            _grantsLookup[_msgSender()].push(price);
             return true;
         }
         return false;
