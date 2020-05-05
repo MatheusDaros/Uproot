@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
+import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IStudent.sol";
 import "./interface/IClassroom.sol";
@@ -50,6 +51,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address _oracleTimestamp;
     bytes32 _requestIdTimestamp;
     uint256 _oraclePaymentTimestamp;
+    address _linkToken;
 
     constructor(
         bytes32 _name,
@@ -98,7 +100,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         uint256 oraclePaymentRandom,
         address oracleTimestamp,
         bytes32 requestIdTimestamp,
-        uint256 oraclePaymentTimestamp
+        uint256 oraclePaymentTimestamp,
+        address linkToken
     ) public onlyOwner {
         _oracleRandom = oracleRandom;
         _requestIdRandom = requestIdRandom;
@@ -106,6 +109,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _oracleTimestamp = oracleTimestamp;
         _requestIdTimestamp = requestIdTimestamp;
         _oraclePaymentTimestamp = oraclePaymentTimestamp;
+        _linkToken = linkToken;
     }
 
     function transferOwnershipClassroom(address newOwner) public override {
@@ -191,7 +195,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function openApplications() public onlyOwner {
-        //TODO: require Oracle setup and Link funds
+        require(
+            _oracleRandom != address(0),
+            "Classroom: setup oracles first"
+        );
         require(
             !openForApplication,
             "Classroom: applications are already opened"
@@ -199,6 +206,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         require(
             _studentApplications.length == 0,
             "Classroom: students list not empty"
+        );
+        require(
+            LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentRandom.add(_oraclePaymentTimestamp),
+            "Classroom: not enough Link tokens"
         );
         openForApplication = true;
         emit LogOpenApplications();
