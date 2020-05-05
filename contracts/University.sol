@@ -12,11 +12,11 @@ import "./gambi/IRelayHub.sol";
 import "./interface/IClassroom.sol";
 import "./interface/IStudent.sol";
 import "./interface/IStudentApplication.sol";
-import "./interface/IGrantsManager.sol";
 import "./interface/IClassroomFactory.sol";
 import "./interface/IStudentFactory.sol";
 import "./interface/IStudentApplicationFactory.sol";
 import "./interface/IUniversity.sol";
+import "./interface/IGrantsManager.sol";
 import "./MyUtils.sol";
 
 //TODO: Natspec Document ENVERYTHING
@@ -49,21 +49,27 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     bytes32 public constant CLASSROOM_PROFESSOR_ROLE = keccak256(
         "CLASSROOM_PROFESSOR_ROLE"
     );
+    /// UNIVERSITY_OVERSEER_ROLE can inspect Grant Managers and Fund Managers, and present cases for funders to vote upon
+    bytes32 public constant UNIVERSITY_OVERSEER_ROLE = keccak256(
+        "UNIVERSITY_OVERSEER_ROLE"
+    );
 
     // Parameter: Name of this University
     bytes32 public name;
     // Parameter: University cut from professor (Parts per Million)
     uint24 public override cut;
+    // Parameter: GSN funds to give students
+    uint256 _studentGSNDeposit;
     // List of every registered classroom
     address[] public _classList;
     // List of every student
     address[] _students;
     // Mapping of each student's applications
     mapping(address => address[]) _studentApplicationsMapping;
-    // Address list of every donor
-    address[] _donors;
-    // GSN funds to give students
-    uint256 _studentGSNDeposit;
+    // Mapping of every donor and donations
+    mapping(address => uint256) public donators;
+    // Total amount of donations received so far
+    uint256 public donationsReceived;
 
     //TODO: resolve students and classrooms addresses using ENS
 
@@ -133,13 +139,14 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return hasRole(STUDENT_IDENTITY_ROLE, student);
     }
 
-    function viewMyApplications() public view returns (address[] memory) {
+    function viewMyApplications() public view override returns (address[] memory) {
         return viewStudentApplications(_msgSender());
     }
 
     function viewStudentApplications(address addr)
         public
         view
+        override
         returns (address[] memory)
     {
         require(
@@ -349,6 +356,35 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         daiToken.approve(to, val);
     }
 
+    function giveGrant(address studentApplication) public override {
+        require(
+            hasRole(GRANTS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have GRANTS_MANAGER_ROLE"
+        );
+        IStudentApplication(studentApplication).payEntryPrice();
+    }
+
+    function viewAllStudentsFromGrantManager(
+            address grantsManager
+        ) public returns (address[] memory) {
+        require(
+            hasRole(UNIVERSITY_OVERSEER_ROLE, _msgSender()),
+            "University: caller doesn't have UNIVERSITY_OVERSEER_ROLE"
+        );
+        return IGrantsManager(grantsManager).viewAllStudents();
+    }
+
+    function viewAllStudentGrantsFromGrantManager(
+            address student, 
+            address grantsManager
+        ) public returns (uint256[] memory) {
+        require(
+            hasRole(UNIVERSITY_OVERSEER_ROLE, _msgSender()),
+            "University: caller doesn't have UNIVERSITY_OVERSEER_ROLE"
+        );
+        return IGrantsManager(grantsManager).viewAllGrantsForStudent(student);
+    }
+
     function acceptRelayedCall(
         GSNTypes.RelayRequest calldata relayRequest,
         bytes calldata,
@@ -372,11 +408,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     //TODO: Trade DAI for ETH in Uniswap
 
-    //TODO: fund
+    //TODO: Allow donations in ETH and convert to DAI in Uniswap
 
-    //TODO: manage grants
+    function donateDai(uint256 donation) public override {
+        daiToken.transferFrom(_msgSender(), address(this), donation);
+        donators[_msgSender()] = donators[_msgSender()].add(donation);
+    }
 
     //TODO: implement funds manager
-
-    //TODO: implement funds manager governance
 }

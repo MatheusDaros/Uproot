@@ -17,6 +17,16 @@ interface IUniversity {
         address
     ) external returns (address);
 
+    function viewMyApplications() 
+        external
+        view
+        returns (address[] memory);
+
+    function viewStudentApplications(address)
+        external
+        view
+        returns (address[] memory);
+
     function studentIsRegistered(address) external view returns (bool);
 
     function registerStudentApplication(address, address) external;
@@ -24,4 +34,8 @@ interface IUniversity {
     function addStudentScore(address, int32) external;
 
     function subStudentScore(address, int32) external;
+
+    function giveGrant(address) external;
+
+    function donateDai(uint256) external;
 }
