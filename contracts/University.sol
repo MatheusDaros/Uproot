@@ -415,9 +415,5 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         donators[_msgSender()] = donators[_msgSender()].add(donation);
     }
 
-    //TODO: manage grants governance
-
     //TODO: implement funds manager
-
-    //TODO: implement funds manager governance
 }
