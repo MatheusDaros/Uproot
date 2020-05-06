@@ -28,16 +28,16 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"getOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSeed\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol\":\"IStudentAnswer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol\":{\"keccak256\":\"0x24a1c8107884749c54f0cb13036fdbfde189e4702c0d7a4f78688ba0b3a010bf\",\"urls\":[\"bzz-raw://009e9552db94f127b54017efb880696c1e9211c07326dfc4649012f2e8f974b1\",\"dweb:/ipfs/QmTH8hq3Xy5bDTwqu5tnxe3WNgWSjroXSNKcbXo9B6614Y\"]},\"@openzeppelin/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0x9a8c691b81a4a48adbbd5b010faa56a168c189e711495c16347d93b60b805f82\",\"urls\":[\"bzz-raw://d951d626ed7bfe1a2d7a6bd4af315ff8691929bd567594d6ab53599fe9e17e4e\",\"dweb:/ipfs/QmYkGeowpa6Bjr9aaDirWdDo7hSfShzzZhanKC4nTfRhLj\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"getOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSeed\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/flavioneto/Uproot/contracts/interface/IStudentAnswer.sol\":\"IStudentAnswer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"/Users/flavioneto/Uproot/contracts/interface/IStudentAnswer.sol\":{\"keccak256\":\"0xcf882e1226637d9506982f4b7d19f5fb0aad470cf63e6ac214c2ab50783e8b02\",\"urls\":[\"bzz-raw://eccfe62e71014bf583a1cc8d115505393d3225344e17c549645a230522011599\",\"dweb:/ipfs/QmUTeppRqGzmQiby5orNqRsCidpDwmaRotMEsCWJ2et1hb\"]},\"@openzeppelin/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0x9a8c691b81a4a48adbbd5b010faa56a168c189e711495c16347d93b60b805f82\",\"urls\":[\"bzz-raw://d951d626ed7bfe1a2d7a6bd4af315ff8691929bd567594d6ab53599fe9e17e4e\",\"dweb:/ipfs/QmYkGeowpa6Bjr9aaDirWdDo7hSfShzzZhanKC4nTfRhLj\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity 0.6.6;\r\n\r\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\r\n\r\n\r\ninterface IStudentAnswer {\r\n    function getOwner() external view returns (address);\r\n\r\n    function getSeed() external view returns (bytes32);\r\n}\r\n",
-  "sourcePath": "/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol",
+  "source": "pragma solidity 0.6.6;\n\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\n\n\ninterface IStudentAnswer {\n    function getOwner() external view returns (address);\n\n    function getSeed() external view returns (bytes32);\n}\n",
+  "sourcePath": "/Users/flavioneto/Uproot/contracts/interface/IStudentAnswer.sol",
   "ast": {
-    "absolutePath": "/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol",
+    "absolutePath": "/Users/flavioneto/Uproot/contracts/interface/IStudentAnswer.sol",
     "exportedSymbols": {
       "IStudentAnswer": [
         4950
@@ -62,8 +62,8 @@
         "id": 4939,
         "nodeType": "ImportDirective",
         "scope": 4951,
-        "sourceUnit": 7420,
-        "src": "26:52:21",
+        "sourceUnit": 9427,
+        "src": "24:52:21",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -96,7 +96,7 @@
               "id": 4940,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "133:2:21"
+              "src": "127:2:21"
             },
             "returnParameters": {
               "id": 4943,
@@ -110,7 +110,7 @@
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
                   "scope": 4944,
-                  "src": "159:7:21",
+                  "src": "153:7:21",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -121,7 +121,7 @@
                     "id": 4941,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "159:7:21",
+                    "src": "153:7:21",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -132,10 +132,10 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "158:9:21"
+              "src": "152:9:21"
             },
             "scope": 4950,
-            "src": "116:52:21",
+            "src": "110:52:21",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -155,7 +155,7 @@
               "id": 4945,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "192:2:21"
+              "src": "184:2:21"
             },
             "returnParameters": {
               "id": 4948,
@@ -169,7 +169,7 @@
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
                   "scope": 4949,
-                  "src": "218:7:21",
+                  "src": "210:7:21",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -180,7 +180,7 @@
                     "id": 4946,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "218:7:21",
+                    "src": "210:7:21",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -190,23 +190,23 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "217:9:21"
+              "src": "209:9:21"
             },
             "scope": 4950,
-            "src": "176:51:21",
+            "src": "168:51:21",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
         "scope": 4951,
-        "src": "84:146:21"
+        "src": "79:142:21"
       }
     ],
-    "src": "0:232:21"
+    "src": "0:222:21"
   },
   "legacyAST": {
-    "absolutePath": "/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol",
+    "absolutePath": "/Users/flavioneto/Uproot/contracts/interface/IStudentAnswer.sol",
     "exportedSymbols": {
       "IStudentAnswer": [
         4950
@@ -231,8 +231,8 @@
         "id": 4939,
         "nodeType": "ImportDirective",
         "scope": 4951,
-        "sourceUnit": 7420,
-        "src": "26:52:21",
+        "sourceUnit": 9427,
+        "src": "24:52:21",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -265,7 +265,7 @@
               "id": 4940,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "133:2:21"
+              "src": "127:2:21"
             },
             "returnParameters": {
               "id": 4943,
@@ -279,7 +279,7 @@
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
                   "scope": 4944,
-                  "src": "159:7:21",
+                  "src": "153:7:21",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -290,7 +290,7 @@
                     "id": 4941,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "159:7:21",
+                    "src": "153:7:21",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -301,10 +301,10 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "158:9:21"
+              "src": "152:9:21"
             },
             "scope": 4950,
-            "src": "116:52:21",
+            "src": "110:52:21",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -324,7 +324,7 @@
               "id": 4945,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "192:2:21"
+              "src": "184:2:21"
             },
             "returnParameters": {
               "id": 4948,
@@ -338,7 +338,7 @@
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
                   "scope": 4949,
-                  "src": "218:7:21",
+                  "src": "210:7:21",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -349,7 +349,7 @@
                     "id": 4946,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "218:7:21",
+                    "src": "210:7:21",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -359,20 +359,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "217:9:21"
+              "src": "209:9:21"
             },
             "scope": 4950,
-            "src": "176:51:21",
+            "src": "168:51:21",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
         "scope": 4951,
-        "src": "84:146:21"
+        "src": "79:142:21"
       }
     ],
-    "src": "0:232:21"
+    "src": "0:222:21"
   },
   "compiler": {
     "name": "solc",
@@ -380,7 +380,7 @@
   },
   "networks": {},
   "schemaVersion": "3.1.0",
-  "updatedAt": "2020-05-05T18:22:25.639Z",
+  "updatedAt": "2020-05-06T00:52:30.874Z",
   "devdoc": {
     "methods": {}
   },
