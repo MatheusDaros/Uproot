@@ -91,7 +91,11 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     address _uniswapDAI;
     IUniswapV2Router01 public _uniswapRouter;
 
+    //Compound Config
     CERC20 public cDAI;
+    IComptroller public comptroller;
+    IPriceOracle public priceOracle;
+
     IERC20 public daiToken;
     IRelayHub public relayHub;
     IClassroomFactory _classroomFactory;
@@ -103,7 +107,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         uint24 _cut,
         uint256 studentGSNDeposit,
         address daiAddress,
-        address compoundDAIAddress,
         address relayHubAddress,
         address classroomFactoryAddress,
         address studentFactoryAddress,
@@ -115,7 +118,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         daiToken = IERC20(daiAddress);
-        cDAI = CERC20(compoundDAIAddress);
         relayHub = IRelayHub(relayHubAddress);
         _classroomFactory = IClassroomFactory(classroomFactoryAddress);
         _studentFactory = IStudentFactory(studentFactoryAddress);
@@ -130,6 +132,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     event LogChangeName(bytes32);
     event LogChangeCut(uint24);
     event LogReceived(address, uint256);
+
+    function configureCompound(
+        address compoundDAIAddress,
+        address comptrollerAddress,
+        address priceOracleAddress
+    ) public onlyOwner {
+        cDAI = CERC20(compoundDAIAddress);
+        comptroller = IComptroller(comptrollerAddress);
+        priceOracle = IPriceOracle(priceOracleAddress);
+    }
 
     function configureUniswap(
         address uniswapWETH,
@@ -366,6 +378,102 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
         cDAI.mint(val);
+    }
+
+    function enterCompoundDAIMarket() public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        address[] memory cTokens = new address[](1);
+        cTokens[0] = address(cDAI);
+        uint256[] memory errors = comptroller.enterMarkets(cTokens);
+        if (errors[0] != 0) {
+            revert("University: Comptroller.enterMarkets failed.");
+        }
+    }
+
+    function exitCompoundDAIMarket() public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        uint256 error = comptroller.exitMarket(address(cDAI));
+        if (error != 0) {
+            revert("University: Comptroller.exitMarket failed.");
+        }
+    }
+
+    function getCompoundLiquidityAndShortfall() 
+        public 
+        view 
+        override
+        returns (uint256, uint256) {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        (uint256 error, uint256 liquidity, uint256 shortfall) = 
+            comptroller
+            .getAccountLiquidity(address(this));
+        if (error != 0) {
+            revert("University: Comptroller.getAccountLiquidity failed.");
+        }
+        return (liquidity, shortfall);
+    }
+
+    function getCompoundPriceInWEI(address cToken) 
+        public 
+        view 
+        override
+        returns (uint256) {
+        return priceOracle.getUnderlyingPrice(cToken);
+    }
+
+    function getCompoundMaxBorrowInWEI(address cToken) 
+        public 
+        view 
+        override
+        returns (uint256) {
+        (uint256 liquidity, ) = getCompoundLiquidityAndShortfall();
+        return liquidity.div(priceOracle.getUnderlyingPrice(cToken));
+    }
+
+    function compoundBorrow(address cToken, uint256 val) 
+        public 
+        override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        CERC20(cToken).borrow(val);
+    }
+
+    function compoundGetBorrow(address cToken) 
+        public 
+        view 
+        override
+        returns (uint256) {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        return CERC20(cToken).borrowBalanceCurrent(address(this));
+    }
+
+    function compoundRepayBorrow(address token, address cToken, uint256 val)
+        public 
+        override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            IERC20(token).balanceOf(address(this)) >= val,
+            "University: not enough of this token stored"
+        );
+        TransferHelper.safeApprove(token, cToken, val);
+        CERC20(cToken).repayBorrow(val);
     }
 
     function recoverFundsCompound(uint256 val) public override {

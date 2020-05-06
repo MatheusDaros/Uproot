@@ -21,10 +21,7 @@ interface IUniversity {
         address
     ) external returns (address);
 
-    function viewMyApplications() 
-        external
-        view
-        returns (address[] memory);
+    function viewMyApplications() external view returns (address[] memory);
 
     function viewStudentApplications(address)
         external
@@ -45,9 +42,9 @@ interface IUniversity {
 
     function donateDAI(uint256) external;
 
-    function swapDAI_ETH(uint256, uint256) external returns (uint[] memory);
+    function swapDAI_ETH(uint256, uint256) external returns (uint256[] memory);
 
-    function swapETH_DAI(uint256, uint256) external returns (uint[] memory);
+    function swapETH_DAI(uint256, uint256) external returns (uint256[] memory);
 
     function reinvestReturns(uint256) external;
 
@@ -58,4 +55,29 @@ interface IUniversity {
     function recoverFundsCompound(uint256) external;
 
     function spendBudget(address, uint256) external;
+
+    function enterCompoundDAIMarket() external;
+
+    function exitCompoundDAIMarket() external;
+
+    function getCompoundLiquidityAndShortfall()
+        external
+        view
+        returns (uint256, uint256);
+
+    function getCompoundPriceInWEI(address) 
+        external 
+        view 
+        returns (uint256);
+
+    function getCompoundMaxBorrowInWEI(address) 
+        external 
+        view 
+        returns (uint256);
+    
+    function compoundBorrow(address, uint256) external;
+
+    function compoundGetBorrow(address) external view returns (uint256);
+
+    function compoundRepayBorrow(address, address, uint256) external;
 }
