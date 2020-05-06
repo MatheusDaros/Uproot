@@ -39,6 +39,21 @@ library MyUtils {
 
 
 interface CERC20 {
+    function transfer(address dst, uint256 amount) external returns (bool);
+
+    function transferFrom(address src, address dst, uint256 amount)
+        external
+        returns (bool);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    function balanceOf(address owner) external view returns (uint256);
+
     function mint(uint256) external returns (uint256);
 
     function exchangeRateCurrent() external returns (uint256);

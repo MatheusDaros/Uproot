@@ -80,7 +80,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     address _uniswapDAI;
     IUniswapV2Router01 public _uniswapRouter;
 
-    CERC20 public cToken;
+    CERC20 public cDAI;
     IERC20 public daiToken;
     IRelayHub public relayHub;
     IClassroomFactory _classroomFactory;
@@ -92,7 +92,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         uint24 _cut,
         uint256 studentGSNDeposit,
         address daiAddress,
-        address compoundAddress,
+        address compoundDAIAddress,
         address relayHubAddress,
         address classroomFactoryAddress,
         address studentFactoryAddress,
@@ -104,7 +104,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         daiToken = IERC20(daiAddress);
-        cToken = CERC20(compoundAddress);
+        cDAI = CERC20(compoundDAIAddress);
         relayHub = IRelayHub(relayHubAddress);
         _classroomFactory = IClassroomFactory(classroomFactoryAddress);
         _studentFactory = IStudentFactory(studentFactoryAddress);
@@ -249,7 +249,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             payable (address(this)),
             challengeAddress,
             address(daiToken),
-            address(cToken),
+            address(cDAI),
             _studentApplicationFactoryAddress
         );
         IClassroom(classroom).transferOwnershipClassroom(owner);
@@ -347,8 +347,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
-        TransferHelper.safeApprove(address(daiToken), address(cToken), val);
-        cToken.mint(val);
+        TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
+        cDAI.mint(val);
     }
 
     function recoverFunds(uint256 val) public {
@@ -356,7 +356,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
-        cToken.redeemUnderlying(val);
+        cDAI.redeemUnderlying(val);
     }
 
     function spendFunds(address to, uint256 val) public {

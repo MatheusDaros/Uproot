@@ -43,7 +43,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     uint256 public duration;
 
     IERC20 public daiToken;
-    CERC20 public cToken;
+    CERC20 public cDAI;
     StudentApplicationFactory _studentApplicationFactory;
     address public _challengeAddress;
 
@@ -71,7 +71,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         address payable universityAddress,
         address challengeAddress,
         address daiAddress,
-        address compoundAddress,
+        address compoundDAIAddress,
         address studentApplicationFactoryAddress
     ) public {
         name = _name;
@@ -85,7 +85,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         openForApplication = false;
         classroomActive = false;
         daiToken = IERC20(daiAddress);
-        cToken = CERC20(compoundAddress);
+        cDAI = CERC20(compoundDAIAddress);
         _studentApplicationFactory = StudentApplicationFactory(studentApplicationFactoryAddress);
     }
 
@@ -248,8 +248,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function applyDAI() public onlyOwner {
         uint256 balance = daiToken.balanceOf(address(this));
         if (balance <= 0) return;
-        TransferHelper.safeApprove(address(daiToken), address(cToken), balance);
-        cToken.mint(balance);
+        TransferHelper.safeApprove(address(daiToken), address(cDAI), balance);
+        cDAI.mint(balance);
     }
 
     function studentApply() public override {
@@ -335,8 +335,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function _recoverInvestment() internal returns (uint256) {
-        uint256 balance = cToken.balanceOfUnderlying(address(this));
-        cToken.redeemUnderlying(balance);
+        uint256 balance = cDAI.balanceOf(address(this));
+        cDAI.redeem(balance);
         return balance;
     }
 
