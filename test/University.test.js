@@ -1,18 +1,8 @@
 var web3 = require('web3');
 
-require("@openzeppelin/test-helpers/configure")({
-  provider: web3.currentProvider,
-  singletons: {
-    abstraction: "truffle"
-  }
-});
-
 const Artifact = artifacts.require("../contracts/University");
 const daiToken = artifacts.require("@openzeppelin/contracts/token/ERC20/IERC20.sol");
 const Assert = require("truffle-assertions");
-
-//const { time } = require("@openzeppelin/test-helpers");
-//const differenceInDays = require("date-fns/differenceInDays");
 
 contract("University", accounts => {
 
@@ -34,6 +24,7 @@ contract("University", accounts => {
   const ownerAddress = accounts[0];
   const address1 = accounts[1];
   const address2 = accounts[2];
+  const address3 = accounts[3];
 
   before(async () => {
     web3.eth.defaultAccount = ownerAddress;
