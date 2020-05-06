@@ -1,4 +1,4 @@
-const Migrations = artifacts.require("University");
+const Migrations = artifacts.require("StudentApplication");
 
 require('dotenv').config();
 
@@ -11,7 +11,7 @@ function getAddress(file) {
 
 var Web3 = require('web3');
 
-const studentAddress = accounts[1]
+const studentAddress = "0x923FA4819cC4A05b1E35de6272e39D051cf2AA9D";
 const classroomAddress = getAddress('../build/contracts/Classroom.json');
 const daiAddress = getAddress('../build/contracts/ERC20.json');
 const challengeAddress = getAddress('../build/contracts/ExampleChallenge.json');

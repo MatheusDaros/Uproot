@@ -79,7 +79,6 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         daiToken = IERC20(daiAddress);
         cToken = CERC20(compoundAddress);
         _studentApplicationFactory = StudentApplicationFactory(studentApplicationFactoryAddress);
-        _generateSeed();
     }
 
     event LogOpenApplications();
@@ -110,6 +109,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _requestIdTimestamp = requestIdTimestamp;
         _oraclePaymentTimestamp = oraclePaymentTimestamp;
         _linkToken = linkToken;
+        require(
+            LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentRandom,
+            "Classroom: not enough Link tokens"
+        );
+        _generateSeed();
     }
 
     function transferOwnershipClassroom(address newOwner) public override {
