@@ -4,6 +4,8 @@ pragma solidity 0.6.6;
 interface IUniversity {
     function name() external view returns (bytes32);
 
+    function availableFunds() external view returns (uint256);
+
     function cut() external view returns (uint24);
 
     function isValidClassroom(address) external view returns (bool);
@@ -37,7 +39,7 @@ interface IUniversity {
 
     function subStudentScore(address, int32) external;
 
-    function giveGrant(address) external;
+    function giveGrant(address, uint256) external;
 
     function donateETH(uint256) external payable;
 
@@ -46,4 +48,14 @@ interface IUniversity {
     function swapDAI_ETH(uint256, uint256) external returns (uint[] memory);
 
     function swapETH_DAI(uint256, uint256) external returns (uint[] memory);
+
+    function reinvestReturns(uint256) external;
+
+    function accountRevenue(uint256) external;
+
+    function applyFundsCompound(uint256) external;
+
+    function recoverFundsCompound(uint256) external;
+
+    function spendBudget(address, uint256) external;
 }

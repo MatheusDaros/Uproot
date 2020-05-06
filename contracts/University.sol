@@ -54,6 +54,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// UNIVERSITY_OVERSEER_ROLE can inspect Grant Managers and Fund Managers, and present cases for funders to vote upon
     bytes32 public constant UNIVERSITY_OVERSEER_ROLE = keccak256(
         "UNIVERSITY_OVERSEER_ROLE"
+    );/// REGISTERED_SUPPLIER_ROLE can receive transactions to consume the operational budget
+    bytes32 public constant REGISTERED_SUPPLIER_ROLE = keccak256(
+        "REGISTERED_SUPPLIER_ROLE"
     );
 
     // Parameter: Name of this University
@@ -72,6 +75,14 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     mapping(address => uint256) public donators;
     // Total amount of donations received so far
     uint256 public donationsReceived;
+    // Total amount of operational revenue received so far
+    uint256 public revenueReceived;
+    // Total amount of financial returns received so far
+    uint256 public returnsReceived;
+    // Total amount of endowment locked in the fund
+    uint256 public endowmentLocked;
+    // Total amount of funds allowed for expenses
+    uint256 public operationalBudget;
 
     //TODO: resolve students and classrooms addresses using ENS
 
@@ -142,6 +153,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     function changeStudentGSNDeposit(uint256 val) public onlyOwner {
         _studentGSNDeposit = val;
+    }
+
+    function availableFunds() public view override returns (uint256) {
+        uint256 funds = daiToken.balanceOf(address(this));
+        if (funds < endowmentLocked.add(operationalBudget)) return 0;
+        return funds.sub(endowmentLocked).sub(operationalBudget);
     }
 
     function isValidClassroom(address classroom) public view override returns (bool) {
@@ -342,7 +359,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IStudent(student).subScore(val);
     }
 
-    function applyFunds(uint256 val) public {
+    function applyFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
@@ -351,7 +368,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.mint(val);
     }
 
-    function recoverFunds(uint256 val) public {
+    function recoverFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
@@ -359,28 +376,58 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.redeemUnderlying(val);
     }
 
-    function spendFunds(address to, uint256 val) public {
+    function increaseOperationalBudget(uint256 val) public onlyOwner {
+        require(
+            endowmentLocked >= val,
+            "University: not enough endowment"
+        );
+        operationalBudget = operationalBudget.add(val);
+        endowmentLocked = endowmentLocked.sub(val);
+    }
+
+    function spendBudget(address to, uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            hasRole(REGISTERED_SUPPLIER_ROLE, to),
+            "University: receiver doesn't have REGISTERED_SUPPLIER_ROLE"
+        );
+        require(
+            operationalBudget >= val,
+            "University: not enough operational budget"
+        );
+        require(
+            daiToken.balanceOf(address(this)) >= val,
+            "University: liquidate some positions first"
         );
         TransferHelper.safeTransfer(address(daiToken), to, val);
+        operationalBudget = operationalBudget.sub(val);
     }
 
-    function allowFunds(address to, uint256 val) public {
-        require(
-            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
-            "University: caller doesn't have FUNDS_MANAGER_ROLE"
-        );
-        TransferHelper.safeApprove(address(daiToken),to, val);
-    }
-
-    function giveGrant(address studentApplication) public override {
+    function giveGrant(address studentApplication, uint256 price) public override {
         require(
             hasRole(GRANTS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have GRANTS_MANAGER_ROLE"
         );
+        require(
+            availableFunds() >= price,
+            "University: not enough available funds"
+        );
         IStudentApplication(studentApplication).payEntryPrice();
+    }
+
+    function reinvestReturns(uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            availableFunds() >= val,
+            "University: not enough available funds"
+        );
+        accountReturns(val);
     }
 
     function viewAllStudentsFromGrantManager(
@@ -419,7 +466,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     function refillUniversityRelayer(uint256 val) public {
         require(
-            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()) || _msgSender() == owner(),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
         relayHub.depositFor.value(val)(address(this));
@@ -474,11 +521,11 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
     }
 
-    // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a person to donate money, it is not needed to stop the person from manipulating its own donation
+    // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
     function donateETH(uint256 donation) public payable override {
         uint256[] memory amounts = swapETH_DAI(donation, 12 hours);
         donators[_msgSender()] = donators[_msgSender()].add(amounts[1]);
-        donationsReceived = donationsReceived.add(amounts[1]);
+        accountDonation(amounts[1]);
     }
 
     function donateDAI(uint256 donation) public override {
@@ -489,8 +536,32 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             donation
         );
         donators[_msgSender()] = donators[_msgSender()].add(donation);
-        donationsReceived = donationsReceived.add(donation);
+        accountDonation(donation);
     }
+
+    function accountDonation(uint256 donation) internal {
+        donationsReceived = donationsReceived.add(donation);
+        endowmentLocked = endowmentLocked.add(donation);
+    }
+
+    function accountRevenue(uint256 revenue) public override {
+        require(
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
+        );
+        revenueReceived = revenueReceived.add(revenue);
+        endowmentLocked = endowmentLocked.add(revenue);
+    }
+
+    function accountReturns(uint256 financialReturns) internal {
+        require(
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
+        );
+        returnsReceived = revenueReceived.add(financialReturns);
+        endowmentLocked = endowmentLocked.add(financialReturns);
+    }
+
 
     //TODO: implement funds manager
 }

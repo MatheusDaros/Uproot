@@ -455,6 +455,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     function _resolveUniversityCut(uint256 universityCut) internal {
         TransferHelper.safeTransfer(address(daiToken), address(university), universityCut);
+        university.accountRevenue(universityCut);
     }
 
     function _updateStudentScores() internal {
