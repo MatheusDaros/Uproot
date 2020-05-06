@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./gambi/IRelayHub.sol";
@@ -73,6 +75,11 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     //TODO: resolve students and classrooms addresses using ENS
 
+    //Uniswap Config
+    address _uniswapWETH;
+    address _uniswapDAI;
+    IUniswapV2Router01 public _uniswapRouter;
+
     CERC20 public cToken;
     IERC20 public daiToken;
     IRelayHub public relayHub;
@@ -112,6 +119,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     event LogChangeName(bytes32);
     event LogChangeCut(uint24);
     event LogReceived(address, uint256);
+
+    function configureUniswap(
+        address uniswapWETH,
+        address uniswapDAI,
+        address uniswapRouter
+    ) public onlyOwner {
+        _uniswapWETH = uniswapWETH;
+        _uniswapDAI = uniswapDAI;
+        _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+    }
 
     function changeName(bytes32 val) public onlyOwner {
         name = val;
@@ -280,8 +297,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             );
     }
 
-    function registerStudentApplication(address student, address application)
-        public override
+    function registerStudentApplication(
+        address student,
+        address application
+    ) public override
     {
         require(
             hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
@@ -328,7 +347,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
-        daiToken.approve(address(cToken), val);
+        TransferHelper.safeApprove(address(daiToken), address(cToken), val);
         cToken.mint(val);
     }
 
@@ -345,7 +364,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
-        daiToken.transfer(to, val);
+        TransferHelper.safeTransfer(address(daiToken), to, val);
     }
 
     function allowFunds(address to, uint256 val) public {
@@ -353,7 +372,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
-        daiToken.approve(to, val);
+        TransferHelper.safeApprove(address(daiToken),to, val);
     }
 
     function giveGrant(address studentApplication) public override {
@@ -401,18 +420,76 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     function refillUniversityRelayer(uint256 val) public {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
-            "University: caller doesn't have STUDENT_IDENTITY_ROLE"
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
         relayHub.depositFor.value(val)(address(this));
     }
 
-    //TODO: Trade DAI for ETH in Uniswap
+    function swapDAI_ETH(
+        uint256 amount,
+        uint256 deadline
+    ) public override returns (uint[] memory amounts) {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            _uniswapWETH != address(0),
+            "University: setup uniswap first"
+        );
+        amounts = swapBlind(_uniswapDAI, _uniswapWETH, amount, deadline);
+    }
 
-    //TODO: Allow donations in ETH and convert to DAI in Uniswap
+    function swapETH_DAI(
+        uint256 amount,
+        uint256 deadline
+    ) public override returns (uint[] memory amounts) {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            _uniswapWETH != address(0),
+            "University: setup uniswap first"
+        );
+        amounts = swapBlind(_uniswapWETH, _uniswapDAI, amount, deadline);
+    }
 
-    function donateDai(uint256 donation) public override {
-        daiToken.transferFrom(_msgSender(), address(this), donation);
+    function swapBlind(
+        address tokenA,
+        address tokenB,
+        uint256 amount,
+        uint256 deadline
+    ) internal returns (uint[] memory amounts) {
+        TransferHelper.safeApprove(tokenA, address(_uniswapRouter), amount);
+        address[] memory path = new address[](2);
+        path[0] = tokenA;
+        path[1] = tokenB;
+        amounts = _uniswapRouter.swapExactTokensForTokens(
+            amount,
+            0,
+            path,
+            address(this),
+            deadline
+        );
+    }
+
+    // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a person to donate money, it is not needed to stop the person from manipulating its own donation
+    function donateETH(uint256 donation) public payable override {
+        uint256[] memory amounts = swapETH_DAI(donation, 12 hours);
+        donators[_msgSender()] = donators[_msgSender()].add(amounts[1]);
+        donationsReceived = donationsReceived.add(amounts[1]);
+    }
+
+    function donateDAI(uint256 donation) public override {
+        TransferHelper.safeTransferFrom(
+            address(daiToken),
+            _msgSender(),
+            address(this),
+            donation
+        );
         donators[_msgSender()] = donators[_msgSender()].add(donation);
+        donationsReceived = donationsReceived.add(donation);
     }
 
     //TODO: implement funds manager

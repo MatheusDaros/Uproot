@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IStudent.sol";
 import "./interface/IClassroom.sol";
@@ -45,6 +47,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     StudentApplicationFactory _studentApplicationFactory;
     address public _challengeAddress;
 
+    //Chainlink config
     address _oracleRandom;
     bytes32 _requestIdRandom;
     uint256 _oraclePaymentRandom;
@@ -52,6 +55,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     bytes32 _requestIdTimestamp;
     uint256 _oraclePaymentTimestamp;
     address _linkToken;
+
+    //Uniswap Config
+    address _uniswapLINK;
+    address _uniswapDAI;
+    IUniswapV2Router01 public _uniswapRouter;
 
     constructor(
         bytes32 _name,
@@ -116,11 +124,19 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _generateSeed();
     }
 
+    function configureUniswap(
+        address uniswapLINK,
+        address uniswapDAI,
+        address uniswapRouter
+    ) public onlyOwner {
+        _uniswapLINK = uniswapLINK;
+        _uniswapDAI = uniswapDAI;
+        _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+    }
+
     function transferOwnershipClassroom(address newOwner) public override {
         transferOwnership(newOwner);
     }
-
-    //TODO: Buy LINK with DAI using Uniswap
 
     function changeName(bytes32 val) public onlyOwner {
         name = val;
@@ -212,7 +228,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             "Classroom: students list not empty"
         );
         require(
-            LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentRandom.add(_oraclePaymentTimestamp),
+            LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentTimestamp,
             "Classroom: not enough Link tokens"
         );
         openForApplication = true;
@@ -232,7 +248,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function applyDAI() public onlyOwner {
         uint256 balance = daiToken.balanceOf(address(this));
         if (balance <= 0) return;
-        daiToken.approve(address(cToken), balance);
+        TransferHelper.safeApprove(address(daiToken), address(cToken), balance);
         cToken.mint(balance);
     }
 
@@ -429,7 +445,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     {
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
             if (studentAllowances[i] > 0)
-                daiToken.approve(
+                TransferHelper.safeApprove
+                    (address(daiToken),
                     address(_validStudentApplications[i]),
                     studentAllowances[i]
                 );
@@ -437,7 +454,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function _resolveUniversityCut(uint256 universityCut) internal {
-        daiToken.transfer(address(university), universityCut);
+        TransferHelper.safeTransfer(address(daiToken), address(university), universityCut);
     }
 
     function _updateStudentScores() internal {
@@ -479,6 +496,36 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             address(this),
             owner(),
             daiToken.balanceOf(address(this))
+        );
+    }
+
+    function swapDAI_LINK(uint256 amount, uint256 deadline) public onlyOwner {
+        require(
+            _uniswapLINK != address(0),
+            "University: setup uniswap first"
+        );
+        swapBlind(_uniswapDAI, _uniswapLINK, amount, deadline);
+    }
+
+    function swapLINK_DAI(uint256 amount, uint256 deadline) public onlyOwner {
+        require(
+            _uniswapLINK != address(0),
+            "University: setup uniswap first"
+        );
+        swapBlind(_uniswapLINK, _uniswapDAI, amount, deadline);
+    }
+
+    function swapBlind(address tokenA, address tokenB, uint256 amount, uint256 deadline) internal {
+        TransferHelper.safeApprove(tokenA, address(_uniswapRouter), amount);
+        address[] memory path = new address[](2);
+        path[0] = tokenA;
+        path[1] = tokenB;
+        _uniswapRouter.swapExactTokensForTokens(
+            amount,
+            0,
+            path,
+            address(this),
+            deadline
         );
     }
 
