@@ -39,5 +39,11 @@ interface IUniversity {
 
     function giveGrant(address) external;
 
-    function donateDai(uint256) external;
+    function donateETH(uint256) external payable;
+
+    function donateDAI(uint256) external;
+
+    function swapDAI_ETH(uint256, uint256) external returns (uint[] memory);
+
+    function swapETH_DAI(uint256, uint256) external returns (uint[] memory);
 }

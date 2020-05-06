@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IStudent.sol";
 import "./interface/IClassroom.sol";
@@ -81,13 +82,11 @@ contract StudentApplication is Ownable, IStudentApplication {
             _applicationState == ApplicationState.New,
             "StudentApplication: application is not New"
         );
-        require(
-            daiToken.transferFrom(
-                msg.sender,
-                _classroomAddress,
-                _entryPrice
-            ),
-            "StudentApplication: could not transfer DAI"
+        TransferHelper.safeTransferFrom(
+            address(daiToken),
+            msg.sender,
+            _classroomAddress,
+            _entryPrice
         );
         _applicationState = ApplicationState.Ready;
     }
@@ -186,6 +185,6 @@ contract StudentApplication is Ownable, IStudentApplication {
             applicationState() > 2,
             "StudentApplication: application not finished"
         );
-        daiToken.transferFrom(_classroomAddress, to, val);
+        TransferHelper.safeTransferFrom(address(daiToken), _classroomAddress, to, val);
     }
 }
