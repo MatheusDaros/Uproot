@@ -39,20 +39,20 @@ library MyUtils {
 
 
 interface CERC20 {
-    function transfer(address dst, uint256 amount) external returns (bool);
+    function transfer(address, uint256) external returns (bool);
 
-    function transferFrom(address src, address dst, uint256 amount)
+    function transferFrom(address, address, uint256)
         external
         returns (bool);
 
-    function approve(address spender, uint256 amount) external returns (bool);
+    function approve(address, uint256) external returns (bool);
 
-    function allowance(address owner, address spender)
+    function allowance(address, address)
         external
         view
         returns (uint256);
 
-    function balanceOf(address owner) external view returns (uint256);
+    function balanceOf(address) external view returns (uint256);
 
     function mint(uint256) external returns (uint256);
 
@@ -66,11 +66,34 @@ interface CERC20 {
 
     function getCash() external returns (uint256);
 
-    function balanceOfUnderlying(address) external returns (uint256);
+    function balanceOfUnderlying(address) external view returns (uint256);
 
     function borrow(uint256) external returns (uint256);
 
     function repayBorrow(uint256) external returns (uint256);
 
     function repayBorrowBehalf(address, uint256) external returns (uint256);
+
+    function borrowBalanceCurrent(address) external view returns (uint256);
+}
+
+
+interface IComptroller {
+    function markets(address) external returns (bool, uint256);
+
+    function enterMarkets(address[] calldata)
+        external
+        returns (uint256[] memory);
+
+    function exitMarket(address) external returns (uint256);
+
+    function getAccountLiquidity(address)
+        external
+        view
+        returns (uint256, uint256, uint256);
+}
+
+
+interface IPriceOracle {
+    function getUnderlyingPrice(address) external view returns (uint256);
 }

@@ -56,8 +56,8 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
         _grantsLookup[student];
     }
 
-    function giveGrant(address studentApplication) internal {
-        IUniversity(_universityAddress).giveGrant(studentApplication);
+    function giveGrant(address studentApplication, uint price) internal {
+        IUniversity(_universityAddress).giveGrant(studentApplication, price);
     }
 
     function studentRequestGrant(uint256 price, address studentApplication)
@@ -73,7 +73,7 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
         if (
             _preApprovedStudents[_msgSender()] || _approvalCriteria(_msgSender())
         ) {
-            giveGrant(studentApplication);
+            giveGrant(studentApplication, price);
             _studentsLookup.push(_msgSender());
             _grantsLookup[_msgSender()].push(price);
             return true;

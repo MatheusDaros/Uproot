@@ -8,6 +8,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "./interface/Aave/aToken.sol";
+import "./interface/Aave/ILendingPool.sol";
+import "./interface/Aave/ILendingPoolAddressesProvider.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./gambi/IRelayHub.sol";
@@ -23,6 +26,7 @@ import "./MyUtils.sol";
 
 //TODO: Natspec Document ENVERYTHING
 //TODO: Sort function order from all contracts
+//TODO: Divide University in smaller contracts
 
 contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     using SafeMath for uint256;
@@ -54,6 +58,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// UNIVERSITY_OVERSEER_ROLE can inspect Grant Managers and Fund Managers, and present cases for funders to vote upon
     bytes32 public constant UNIVERSITY_OVERSEER_ROLE = keccak256(
         "UNIVERSITY_OVERSEER_ROLE"
+    );/// REGISTERED_SUPPLIER_ROLE can receive transactions to consume the operational budget
+    bytes32 public constant REGISTERED_SUPPLIER_ROLE = keccak256(
+        "REGISTERED_SUPPLIER_ROLE"
     );
 
     // Parameter: Name of this University
@@ -72,6 +79,14 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     mapping(address => uint256) public donators;
     // Total amount of donations received so far
     uint256 public donationsReceived;
+    // Total amount of operational revenue received so far
+    uint256 public revenueReceived;
+    // Total amount of financial returns received so far
+    uint256 public returnsReceived;
+    // Total amount of endowment locked in the fund
+    uint256 public endowmentLocked;
+    // Total amount of funds allowed for expenses
+    uint256 public operationalBudget;
 
     //TODO: resolve students and classrooms addresses using ENS
 
@@ -80,9 +95,24 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     address _uniswapDAI;
     IUniswapV2Router01 public _uniswapRouter;
 
+    //Compound Config
     CERC20 public cDAI;
+    IComptroller public comptroller;
+    IPriceOracle public priceOracle;
+
+    //Aave Config
+    ILendingPoolAddressesProvider _aaveProvider;
+    ILendingPool _aaveLendingPool;
+    address _aaveLendingPoolCore;
+    address _aTokenDAI;
+
+    //Tokens
     IERC20 public daiToken;
+
+    //GSN
     IRelayHub public relayHub;
+
+    //Factory
     IClassroomFactory _classroomFactory;
     IStudentFactory _studentFactory;
     address _studentApplicationFactoryAddress;
@@ -92,7 +122,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         uint24 _cut,
         uint256 studentGSNDeposit,
         address daiAddress,
-        address compoundDAIAddress,
         address relayHubAddress,
         address classroomFactoryAddress,
         address studentFactoryAddress,
@@ -104,7 +133,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         daiToken = IERC20(daiAddress);
-        cDAI = CERC20(compoundDAIAddress);
         relayHub = IRelayHub(relayHubAddress);
         _classroomFactory = IClassroomFactory(classroomFactoryAddress);
         _studentFactory = IStudentFactory(studentFactoryAddress);
@@ -120,6 +148,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     event LogChangeCut(uint24);
     event LogReceived(address, uint256);
 
+    function configureCompound(
+        address compoundDAIAddress,
+        address comptrollerAddress,
+        address priceOracleAddress
+    ) public onlyOwner {
+        cDAI = CERC20(compoundDAIAddress);
+        comptroller = IComptroller(comptrollerAddress);
+        priceOracle = IPriceOracle(priceOracleAddress);
+    }
+
     function configureUniswap(
         address uniswapWETH,
         address uniswapDAI,
@@ -128,6 +166,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _uniswapWETH = uniswapWETH;
         _uniswapDAI = uniswapDAI;
         _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+    }
+
+    function configureAave(
+        address lendingPoolAddressesProvider
+    ) public onlyOwner {
+        _aaveProvider = ILendingPoolAddressesProvider(lendingPoolAddressesProvider);
+        _aaveLendingPool = ILendingPool(_aaveProvider.getLendingPool());
+        _aaveLendingPoolCore = _aaveProvider.getLendingPoolCore();
+        _aTokenDAI = ILendingPoolCore(_aaveLendingPoolCore)
+            .getReserveATokenAddress(address(daiToken));
     }
 
     function changeName(bytes32 val) public onlyOwner {
@@ -142,6 +190,18 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     function changeStudentGSNDeposit(uint256 val) public onlyOwner {
         _studentGSNDeposit = val;
+    }
+
+    function availableFundsForInvestment() public view override returns (uint256) {
+        uint256 funds = daiToken.balanceOf(address(this));
+        if (funds < operationalBudget) return 0;
+        return funds.sub(operationalBudget);
+    }
+
+    function availableFunds() public view override returns (uint256) {
+        uint256 funds = daiToken.balanceOf(address(this));
+        if (funds < endowmentLocked.add(operationalBudget)) return 0;
+        return funds.sub(endowmentLocked).sub(operationalBudget);
     }
 
     function isValidClassroom(address classroom) public view override returns (bool) {
@@ -201,7 +261,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return address(studentAddr);
     }
 
-    //ex: owner, name, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days, challengeAddress
     function newClassRoom(
         address owner,
         bytes32 cName,
@@ -342,7 +401,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IStudent(student).subScore(val);
     }
 
-    function applyFunds(uint256 val) public {
+    function applyFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
@@ -351,7 +410,11 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.mint(val);
     }
 
-    function recoverFunds(uint256 val) public {
+    function appliedDAICompound() public view override returns (uint256) {
+        return cDAI.balanceOfUnderlying(address(this));
+    }
+
+    function recoverFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
@@ -359,28 +422,227 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.redeemUnderlying(val);
     }
 
-    function spendFunds(address to, uint256 val) public {
+    function applyFundsAave(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        TransferHelper.safeApprove(address(daiToken), _aaveLendingPoolCore, val);
+        _aaveLendingPool.deposit(address(daiToken), val, 0);
+    }
+
+    function appliedDAIAave() public view override returns (uint256) {
+        return aToken(_aTokenDAI).balanceOf(address(this));
+    }
+
+    function recoverFundsAave(uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        aToken(_aTokenDAI).redeem(val);
+    }
+
+    function setAaveMarketCollateralForDAI(bool state) public override {
+        setAaveMarketCollateral(address(daiToken), state);
+    }
+
+    function setAaveMarketCollateral(address token, bool state) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        _aaveLendingPool.setUserUseReserveAsCollateral(token, state);
+    }
+
+    function enterCompoundDAIMarket() public override {
+        enterCompoundMarket(address(cDAI));
+    }
+
+    function enterCompoundMarket(address token) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        address[] memory cTokens = new address[](1);
+        cTokens[0] = token;
+        uint256[] memory errors = comptroller.enterMarkets(cTokens);
+        if (errors[0] != 0) {
+            revert("University: Comptroller.enterMarkets failed.");
+        }
+    }
+
+    function exitCompoundDAIMarket() public override {
+        exitCompoundMarket(address(cDAI));
+    }
+
+    function exitCompoundMarket(address token) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        uint256 error = comptroller.exitMarket(token);
+        if (error != 0) {
+            revert("University: Comptroller.exitMarket failed.");
+        }
+    }
+
+    function getCompoundLiquidityAndShortfall() 
+        public 
+        view 
+        override
+        returns (uint256, uint256) {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        (uint256 error, uint256 liquidity, uint256 shortfall) = 
+            comptroller
+            .getAccountLiquidity(address(this));
+        if (error != 0) {
+            revert("University: Comptroller.getAccountLiquidity failed.");
+        }
+        return (liquidity, shortfall);
+    }
+
+    function getCompoundPriceInWEI(address cToken) 
+        public 
+        view 
+        override
+        returns (uint256) {
+        return priceOracle.getUnderlyingPrice(cToken);
+    }
+
+    function getCompoundMaxBorrowInWEI(address cToken) 
+        public 
+        view 
+        override
+        returns (uint256) {
+        (uint256 liquidity, ) = getCompoundLiquidityAndShortfall();
+        return liquidity.div(priceOracle.getUnderlyingPrice(cToken));
+    }
+
+    function compoundBorrow(address cToken, uint256 val) 
+        public 
+        override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        CERC20(cToken).borrow(val);
+    }
+
+    function compoundGetBorrow(address cToken) 
+        public 
+        view 
+        override
+        returns (uint256) {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        return CERC20(cToken).borrowBalanceCurrent(address(this));
+    }
+
+    function compoundRepayBorrow(address token, address cToken, uint256 val)
+        public 
+        override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            IERC20(token).balanceOf(address(this)) >= val,
+            "University: not enough of this token stored"
+        );
+        TransferHelper.safeApprove(token, cToken, val);
+        CERC20(cToken).repayBorrow(val);
+    }
+
+    function aaveGetBorrow(address token, uint256 val, bool variableRate) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        uint8 vRate = variableRate ? 2 : 1;
+        _aaveLendingPool.borrow(token, val, vRate, 0);
+    }
+
+    function aaveRepayBorrow(address token, uint256 val)
+        public 
+        override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            IERC20(token).balanceOf(address(this)) >= val,
+            "University: not enough of this token stored"
+        );
+        TransferHelper.safeApprove(token, _aaveProvider.getLendingPoolCore(), val);
+        _aaveLendingPool.repay(token, val, address(this));
+    }
+
+    function aaveSwapBorrowRateMode(address token) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        _aaveLendingPool.swapBorrowRateMode(token);
+    }
+
+    function increaseOperationalBudget(uint256 val) public onlyOwner {
+        require(
+            endowmentLocked >= val,
+            "University: not enough endowment"
+        );
+        operationalBudget = operationalBudget.add(val);
+        endowmentLocked = endowmentLocked.sub(val);
+    }
+
+    function spendBudget(address to, uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            hasRole(REGISTERED_SUPPLIER_ROLE, to),
+            "University: receiver doesn't have REGISTERED_SUPPLIER_ROLE"
+        );
+        require(
+            operationalBudget >= val,
+            "University: not enough operational budget"
+        );
+        require(
+            daiToken.balanceOf(address(this)) >= val,
+            "University: liquidate some positions first"
         );
         TransferHelper.safeTransfer(address(daiToken), to, val);
+        operationalBudget = operationalBudget.sub(val);
     }
 
-    function allowFunds(address to, uint256 val) public {
-        require(
-            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
-            "University: caller doesn't have FUNDS_MANAGER_ROLE"
-        );
-        TransferHelper.safeApprove(address(daiToken),to, val);
-    }
-
-    function giveGrant(address studentApplication) public override {
+    function giveGrant(address studentApplication, uint256 price) public override {
         require(
             hasRole(GRANTS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have GRANTS_MANAGER_ROLE"
         );
+        require(
+            availableFunds() >= price,
+            "University: not enough available funds"
+        );
         IStudentApplication(studentApplication).payEntryPrice();
+    }
+
+    function reinvestReturns(uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            availableFunds() >= val,
+            "University: not enough available funds"
+        );
+        accountReturns(val);
     }
 
     function viewAllStudentsFromGrantManager(
@@ -419,7 +681,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     function refillUniversityRelayer(uint256 val) public {
         require(
-            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()) || _msgSender() == owner(),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
         relayHub.depositFor.value(val)(address(this));
@@ -473,12 +735,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             deadline
         );
     }
-
-    // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a person to donate money, it is not needed to stop the person from manipulating its own donation
+    
     function donateETH(uint256 donation) public payable override {
+        // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
         uint256[] memory amounts = swapETH_DAI(donation, 12 hours);
         donators[_msgSender()] = donators[_msgSender()].add(amounts[1]);
-        donationsReceived = donationsReceived.add(amounts[1]);
+        accountDonation(amounts[1]);
     }
 
     function donateDAI(uint256 donation) public override {
@@ -489,8 +751,29 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             donation
         );
         donators[_msgSender()] = donators[_msgSender()].add(donation);
-        donationsReceived = donationsReceived.add(donation);
+        accountDonation(donation);
     }
 
-    //TODO: implement funds manager
+    function accountDonation(uint256 donation) internal {
+        donationsReceived = donationsReceived.add(donation);
+        endowmentLocked = endowmentLocked.add(donation);
+    }
+
+    function accountRevenue(uint256 revenue) public override {
+        require(
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
+        );
+        revenueReceived = revenueReceived.add(revenue);
+        endowmentLocked = endowmentLocked.add(revenue);
+    }
+
+    function accountReturns(uint256 financialReturns) internal {
+        require(
+            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
+            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
+        );
+        returnsReceived = revenueReceived.add(financialReturns);
+        endowmentLocked = endowmentLocked.add(financialReturns);
+    }
 }
