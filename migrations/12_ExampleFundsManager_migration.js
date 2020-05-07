@@ -11,6 +11,8 @@ function getAddress(file) {
     return input.networks[dKey].address;
 }
 
+const universityAddress = getAddress('../build/contracts/University.json');
+
 module.exports = function(deployer) {
-    deployer.deploy(Migrations);
+    deployer.deploy(Migrations, universityAddress);
 };
