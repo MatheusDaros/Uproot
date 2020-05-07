@@ -115,9 +115,19 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     IStudentFactory _studentFactory;
     address _studentApplicationFactoryAddress;
 
+    /// @notice Constructor setup the basic variables
+    /// @dev Not all variables can be defined in this constructor because the limitation of the stack size
+    /// @param name_ Given name for the university
+    /// @param cut_ Cut from professor payments, in PPM
+    /// @param studentGSNDeposit Ammount of ETH to give relayer hub of students for UX reasons, in WEI
+    /// @param daiAddress Adress of contract in the network
+    /// @param relayHubAddress Adress of contract in the network
+    /// @param classroomFactoryAddress Adress of contract in the network
+    /// @param studentFactoryAddress Adress of contract in the network
+    /// @param studentApplicationFactoryAddress Adress of contract in the network
     constructor(
-        bytes32 _name,
-        uint24 _cut,
+        bytes32 name_,
+        uint24 cut_,
         uint256 studentGSNDeposit,
         address daiAddress,
         address relayHubAddress,
@@ -125,8 +135,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         address studentFactoryAddress,
         address studentApplicationFactoryAddress
     ) public {
-        name = _name;
-        cut = _cut;
+        name = name_;
+        cut = cut_;
         _studentGSNDeposit = studentGSNDeposit;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
@@ -137,15 +147,36 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _studentApplicationFactoryAddress = studentApplicationFactoryAddress;
     }
 
+    /// @notice Allow receiving ETH
     receive() external payable {
         emit LogReceived(msg.sender, msg.value);
     }
 
-    event LogNewClassroom(bytes32, address);
-    event LogChangeName(bytes32);
-    event LogChangeCut(uint24);
-    event LogReceived(address, uint256);
+    /// @notice Allow taking ETH from the contract
+    function withdraw(uint256 val) public onlyOwner {
+        TransferHelper.safeTransferETH(_msgSender(), val);
+    }
 
+    /// @notice Records the name and address of every new classroom created
+    event LogNewClassroom(bytes32, address);
+    /// @notice Records the name changes of this University
+    event LogChangeName(bytes32);
+    /// @notice Records the changes in the Cut parameter
+    event LogChangeCut(uint24);
+    /// @notice Records ETH received
+    event LogReceived(address, uint256);
+    /// @notice Records donations received and the address of the donor
+    event LogDonation(address, uint256);
+    /// @notice Records investment returns received and the address of the caller
+    event LogReturn(address, uint256);
+    /// @notice Records revenues received and the address of the souce
+    event LogRevenue(address, uint256);
+
+    /// @notice Setup the Compound variables
+    /// @dev Not all variables can be defined in the constructor because the limitation of the stack size
+    /// @param compoundDAIAddress Address of the contract in the network
+    /// @param comptrollerAddress Address of the contract in the network
+    /// @param priceOracleAddress Address of the contract in the network
     function configureCompound(
         address compoundDAIAddress,
         address comptrollerAddress,
@@ -156,6 +187,11 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         priceOracle = IPriceOracle(priceOracleAddress);
     }
 
+    /// @notice Setup the Uniswap variables
+    /// @dev Not all variables can be defined in the constructor because the limitation of the stack size
+    /// @param uniswapWETH Address of the contract in the network
+    /// @param uniswapDAI Address of the contract in the network
+    /// @param uniswapRouter Address of the contract in the network
     function configureUniswap(
         address uniswapWETH,
         address uniswapDAI,
@@ -166,6 +202,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _uniswapRouter = IUniswapV2Router01(uniswapRouter);
     }
 
+    /// @notice Setup the Ava variables
+    /// @dev Not all variables can be defined in the constructor because the limitation of the stack size
+    /// @param lendingPoolAddressesProvider Address of the contract in the network
     function configureAave(
         address lendingPoolAddressesProvider
     ) public onlyOwner {
@@ -176,36 +215,46 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             .getReserveATokenAddress(address(daiToken));
     }
 
+    /// @notice Change the name of the University
+    /// @param val New value
     function changeName(bytes32 val) public onlyOwner {
         name = val;
         emit LogChangeName(name);
     }
 
+    /// @notice Change the cut charged from the professors
+    /// @param val New value, in PPM
     function changeCut(uint24 val) public onlyOwner {
         cut = val;
         emit LogChangeCut(cut);
     }
 
+    /// @notice Change the value of ETH deposited in students relay hub
+    /// @param val New value, in WEI
     function changeStudentGSNDeposit(uint256 val) public onlyOwner {
         _studentGSNDeposit = val;
     }
 
+    /// @return the ammount of DAI able for investing
     function availableFundsForInvestment() public view override returns (uint256) {
         uint256 funds = daiToken.balanceOf(address(this));
         if (funds < operationalBudget) return 0;
         return funds.sub(operationalBudget);
     }
 
+    /// @return the ammount of DAI able for giving grants
     function availableFunds() public view override returns (uint256) {
         uint256 funds = daiToken.balanceOf(address(this));
         if (funds < endowmentLocked.add(operationalBudget)) return 0;
         return funds.sub(endowmentLocked).sub(operationalBudget);
     }
 
+    /// @return true if the classroom is registered in this University 
     function isValidClassroom(address classroom) public view override returns (bool) {
         return hasRole(CLASSROOM_PROFESSOR_ROLE, classroom);
     }
 
+    /// @return true if the student is registered in this University 
     function studentIsRegistered(address student) public view override returns (bool) {
         require(
             hasRole(READ_STUDENT_LIST_ROLE, _msgSender()),
@@ -214,10 +263,13 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return hasRole(STUDENT_IDENTITY_ROLE, student);
     }
 
+    /// @return the address of the application of a Student
     function viewMyApplications() public view override returns (address[] memory) {
         return viewStudentApplications(_msgSender());
     }
 
+    /// @param addr Address of the student
+    /// @return the addresses of the applications of a the supplied address
     function viewStudentApplications(address addr)
         public
         view
@@ -231,12 +283,19 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return _studentApplicationsMapping[addr];
     }
 
+    /// @notice Self-register function where an address can create an instance of a Student in this University
+    /// @dev This GSN implementation is buggy
+    /// @param sName Name of the Student
+    /// @return the smart contract address for this Student instance in this University
     function studentSelfRegisterGSN(bytes32 sName) public returns (address) {
         address student = _newStudent(sName, _msgSenderGSN());
         relayHub.depositFor.value(_studentGSNDeposit)(student);
         return student;
     }
 
+    /// @notice Self-register function where an address can create an instance of a Student in this University
+    /// @param sName Name of the Student
+    /// @return the smart contract address for this Student instance in this University
     function studentSelfRegister(bytes32 sName) public returns (address) {
         return _newStudent(sName, _msgSender());
     }
@@ -259,6 +318,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return address(studentAddr);
     }
 
+    /// @notice Register function where an Admin can can create an instance of a Classroom in this University
+    /// @param owner Address to own this classroom
+    /// @param cName Name this classroom
+    /// @param cCut Cut of the principal amount deposited that is charged from students, in PPM
+    /// @param cPCut Cut of the pooled returns from successful students, in PPM
+    /// @param minScore Minimum score value required from students to be able to apply in this classroom
+    /// @param entryPrice Required deposit to be applied as principal an locked for the duration of the course, in decimal units of DAI
+    /// @param duration Lock time between course opening and closing, in Timestamp
+    /// @param challengeAddress Address to the challenge to be solved in this Classroom's courses
+    /// @return the smart contract address for this Classroom instance in this University
     function newClassRoom(
         address owner,
         bytes32 cName,
@@ -318,6 +387,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return classroomAddr;
     }
 
+    /// @notice Register function where an Student can can create an instance of a Classroom in this University, upon being successful in any classroom
+    /// @param applicationAddr Address of the successful application
+    /// @param cName Name this classroom
+    /// @param cCut Cut of the principal amount deposited that is charged from students, in PPM
+    /// @param cPCut Cut of the pooled returns from successful students, in PPM
+    /// @param minScore Minimum score value required from students to be able to apply in this classroom
+    /// @param entryPrice Required deposit to be applied as principal an locked for the duration of the course, in decimal units of DAI
+    /// @param duration Lock time between course opening and closing, in Timestamp
+    /// @param challenge Address to the challenge to be solved in this Classroom's courses
+    /// @return the smart contract address for this Classroom instance in this University
     function studentRequestClassroom(
         address applicationAddr,
         bytes32 cName,
@@ -354,6 +433,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             );
     }
 
+    /// @notice Register and map a Student's application to this Student
+    /// @param student Address of the Student
+    /// @param application Address of the application
     function registerStudentApplication(
         address student,
         address application
@@ -366,6 +448,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _studentApplicationsMapping[student].push(application);
     }
 
+    /// @notice Check if an application belongs to a specific Student
+    /// @param studentAddress Address of the Student
+    /// @param applicationAddress Address of the application
+    /// @return true if the application belongs to the Student
     function checkForStudentApplication(
         address studentAddress,
         address applicationAddress
@@ -383,6 +469,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return false;
     }
 
+    /// @notice Increase a Student's score upon successful application
+    /// @param student Address of the Student
+    /// @param val Value to be added
     function addStudentScore(address student, int32 val) public override {
         require(
             hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
@@ -391,6 +480,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IStudent(student).addScore(val);
     }
 
+    /// @notice Decrease a Student's score upon failed application
+    /// @param student Address of the Student
+    /// @param val Value to be subtracted
     function subStudentScore(address student, int32 val) public override {
         require(
             hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
@@ -399,6 +491,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IStudent(student).subScore(val);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function applyFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -408,10 +501,13 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.mint(val);
     }
 
+    /// @notice Get the ammount of DAI applied in Compound
+    /// @return ammount of DAI applied in Compound
     function appliedDAICompound() public view override returns (uint256) {
         return cDAI.balanceOfUnderlying(address(this));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function recoverFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -420,6 +516,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.redeemUnderlying(val);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function applyFundsAave(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -429,10 +526,13 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _aaveLendingPool.deposit(address(daiToken), val, 0);
     }
 
+    /// @notice Get the ammount of DAI applied in Aave
+    /// @return ammount of DAI applied in Aave
     function appliedDAIAave() public view override returns (uint256) {
         return aToken(_aTokenDAI).balanceOf(address(this));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function recoverFundsAave(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -441,10 +541,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         aToken(_aTokenDAI).redeem(val);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function setAaveMarketCollateralForDAI(bool state) public override {
         setAaveMarketCollateral(address(daiToken), state);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function setAaveMarketCollateral(address token, bool state) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -453,10 +555,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _aaveLendingPool.setUserUseReserveAsCollateral(token, state);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function enterCompoundDAIMarket() public override {
         enterCompoundMarket(address(cDAI));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function enterCompoundMarket(address token) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -470,10 +574,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         }
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function exitCompoundDAIMarket() public override {
         exitCompoundMarket(address(cDAI));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function exitCompoundMarket(address token) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -485,15 +591,13 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         }
     }
 
+    /// @notice Get the liquidity state in Compound
+    /// @return liquidity and/or shortfall in ETH, expressed in WEI
     function getCompoundLiquidityAndShortfall() 
         public 
         view 
         override
         returns (uint256, uint256) {
-        require(
-            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
-            "University: caller doesn't have FUNDS_MANAGER_ROLE"
-        );
         (uint256 error, uint256 liquidity, uint256 shortfall) = 
             comptroller
             .getAccountLiquidity(address(this));
@@ -503,6 +607,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return (liquidity, shortfall);
     }
 
+    /// @notice Get the price from a specific token in Compound
+    /// @param cToken Compound token address to query
+    /// @return price in ETH, expressed in WEI
     function getCompoundPriceInWEI(address cToken) 
         public 
         view 
@@ -511,6 +618,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return priceOracle.getUnderlyingPrice(cToken);
     }
 
+    /// @notice Get the maximum volume of tokens to borrow in Compound
+    /// @param cToken Compound token address to query
+    /// @return maximum borrow volume, expressed in WEI
+    /// @dev Borrowing the maximum amount may lead to intant liquidation. Always borrow less than the maximum
     function getCompoundMaxBorrowInWEI(address cToken) 
         public 
         view 
@@ -520,6 +631,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return liquidity.div(priceOracle.getUnderlyingPrice(cToken));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function compoundBorrow(address cToken, uint256 val) 
         public 
         override {
@@ -530,6 +642,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         CERC20(cToken).borrow(val);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function compoundGetBorrow(address cToken) 
         public 
         view 
@@ -542,6 +655,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return CERC20(cToken).borrowBalanceCurrent(address(this));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function compoundRepayBorrow(address token, address cToken, uint256 val)
         public 
         override {
@@ -557,6 +671,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         CERC20(cToken).repayBorrow(val);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function aaveGetBorrow(address token, uint256 val, bool variableRate) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -566,6 +681,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _aaveLendingPool.borrow(token, val, vRate, 0);
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function aaveRepayBorrow(address token, uint256 val)
         public 
         override {
@@ -581,6 +697,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _aaveLendingPool.repay(token, val, address(this));
     }
 
+    /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function aaveSwapBorrowRateMode(address token) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -589,6 +706,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _aaveLendingPool.swapBorrowRateMode(token);
     }
 
+    /// @notice Allow managing how much Funds Manager can draw from funds to cover operational expenses. Must be called from the university admin
+    /// @param val Value to increase
     function increaseOperationalBudget(uint256 val) public onlyOwner {
         require(
             endowmentLocked >= val,
@@ -598,6 +717,20 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         endowmentLocked = endowmentLocked.sub(val);
     }
 
+    /// @notice Allow managing how much Funds Manager can draw from funds to cover operational expenses. Must be called from the university admin
+    /// @param val Value to decrease
+    function decreaseOperationalBudget(uint256 val) public onlyOwner {
+        require(
+            operationalBudget >= val,
+            "University: not enough budget to decrease"
+        );
+        operationalBudget = operationalBudget.sub(val);
+        endowmentLocked = endowmentLocked.add(val);
+    }
+
+    /// @notice Allow a Funds Manager to send funds to Registered Suppliers, spending the operational budget set by the University owner
+    /// @param to Address of the Registered Supplier
+    /// @param val Value to be sent, in DAI decimals
     function spendBudget(address to, uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -619,6 +752,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         operationalBudget = operationalBudget.sub(val);
     }
 
+    /// @notice Allow a Grants Manager to pay a Student's entry price for an application, if the appointed Grants Manager decide so
+    /// @param studentApplication Address of the Student
+    /// @param price Value of the application's entry price
     function giveGrant(address studentApplication, uint256 price) public override {
         require(
             hasRole(GRANTS_MANAGER_ROLE, _msgSender()),
@@ -631,6 +767,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IStudentApplication(studentApplication).payEntryPrice();
     }
 
+    /// @notice Allow a Funds Manager to redirect surplus funds from liquidated positions to the endowment locked value. Irreversible
+    /// @param val Value to be sent, in DAI decimals
     function reinvestReturns(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -643,6 +781,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         accountReturns(val);
     }
 
+    /// @notice Allow an appointed Overseer to inspect all students that received grants by a specific Grants Manager
+    /// @param grantsManager Address of the Grants Manager
+    /// @return array of Students addresses
     function viewAllStudentsFromGrantManager(
             address grantsManager
         ) public returns (address[] memory) {
@@ -653,6 +794,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return IGrantsManager(grantsManager).viewAllStudents();
     }
 
+    /// @notice Allow an appointed Overseer to inspect all grants issued by a specific Grants Manager to a specific Student
+    /// @param student Address of the Student
+    /// @param grantsManager Address of the Grants Manager
+    /// @return array of grant values
     function viewAllStudentGrantsFromGrantManager(
             address student, 
             address grantsManager
@@ -664,6 +809,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return IGrantsManager(grantsManager).viewAllGrantsForStudent(student);
     }
 
+    /// @notice GSN specific implementation
+    /// @dev The idea here is only to allow GSN interactions with one specific funcion
     function acceptRelayedCall(
         GSNTypes.RelayRequest calldata relayRequest,
         bytes calldata,
@@ -677,6 +824,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return abi.encode(relayRequest.target, 0);
     }
 
+    /// @notice Allow a Funds Manager to refill the GSN relayer using the University ETH funds
+    /// @param val Value to be deposited in the relayer, in WEI
     function refillUniversityRelayer(uint256 val) public {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()) || _msgSender() == owner(),
@@ -685,6 +834,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         relayHub.depositFor.value(val)(address(this));
     }
 
+    /// @notice Allow a Funds Manager to swap University funds in DAI for ETH using Uniswap
+    /// @dev The logic for controlling slippage and price should be taken care by the Funds Manager
+    /// @param amount amount of DAI to trade, in decimals
+    /// @param deadline timestamps to keep the transaction valid before reverting 
     function swapDAI_ETH(
         uint256 amount,
         uint256 deadline
@@ -700,6 +853,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         amounts = swapBlind(_uniswapDAI, _uniswapWETH, amount, deadline);
     }
 
+    /// @notice Allow a Funds Manager to swap University funds in ETH for DAI using Uniswap
+    /// @dev The logic for controlling slippage and price should be taken care by the Funds Manager
+    /// @param amount amount of ETH to trade, in decimals of WETH
+    /// @param deadline timestamps to keep the transaction valid before reverting 
     function swapETH_DAI(
         uint256 amount,
         uint256 deadline
@@ -734,13 +891,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
     }
     
+    /// @notice Allow donating ETH to the University funds
+    /// @dev This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
+    /// @param donation amount of ETH to donate, in WEI
     function donateETH(uint256 donation) public payable override {
-        // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
         uint256[] memory amounts = swapETH_DAI(donation, 12 hours);
-        donators[_msgSender()] = donators[_msgSender()].add(amounts[1]);
-        accountDonation(amounts[1]);
+        accountDonation(_msgSender(), amounts[1]);
     }
 
+    /// @notice Allow donating DAI to the University funds. Require allowing the University first
+    /// @param donation amount of DAI to donate, in decimals
     function donateDAI(uint256 donation) public override {
         TransferHelper.safeTransferFrom(
             address(daiToken),
@@ -748,15 +908,17 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             address(this),
             donation
         );
-        donators[_msgSender()] = donators[_msgSender()].add(donation);
-        accountDonation(donation);
+        accountDonation(_msgSender(), donation);
     }
 
-    function accountDonation(uint256 donation) internal {
+    function accountDonation(address sender, uint256 donation) internal {
         donationsReceived = donationsReceived.add(donation);
         endowmentLocked = endowmentLocked.add(donation);
+        donators[sender] = donators[sender].add(donation);
+        LogDonation(_msgSender(), donation);
     }
-
+    
+    /// @notice Classroom call to account a revenue received from a completed course
     function accountRevenue(uint256 revenue) public override {
         require(
             hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
@@ -764,14 +926,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         revenueReceived = revenueReceived.add(revenue);
         endowmentLocked = endowmentLocked.add(revenue);
+        LogRevenue(_msgSender(), revenue);
     }
 
     function accountReturns(uint256 financialReturns) internal {
-        require(
-            hasRole(CLASSROOM_PROFESSOR_ROLE, _msgSender()),
-            "University: caller doesn't have CLASSROOM_PROFESSOR_ROLE"
-        );
         returnsReceived = revenueReceived.add(financialReturns);
         endowmentLocked = endowmentLocked.add(financialReturns);
+        LogReturn(_msgSender(), financialReturns);
     }
 }

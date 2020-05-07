@@ -60711,7 +60711,7 @@
   },
   "networks": {},
   "schemaVersion": "3.1.0",
-  "updatedAt": "2020-05-07T17:22:28.500Z",
+  "updatedAt": "2020-05-07T18:05:29.412Z",
   "devdoc": {
     "methods": {
       "getRoleAdmin(bytes32)": {
