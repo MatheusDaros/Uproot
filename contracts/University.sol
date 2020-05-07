@@ -8,6 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "./interface/Aave/ILendingPool.sol";
+import "./interface/Aave/ILendingPoolAddressesProvider.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./gambi/IRelayHub.sol";
@@ -230,7 +232,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return address(studentAddr);
     }
 
-    //ex: owner, name, 0.2 * 10**6, 0.5 * 10**6, 0, 50 * (10 ** 18), 30 days, challengeAddress
     function newClassRoom(
         address owner,
         bytes32 cName,
@@ -629,8 +630,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
     }
 
-    // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
+    
     function donateETH(uint256 donation) public payable override {
+        // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
         uint256[] memory amounts = swapETH_DAI(donation, 12 hours);
         donators[_msgSender()] = donators[_msgSender()].add(amounts[1]);
         accountDonation(amounts[1]);

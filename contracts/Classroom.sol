@@ -9,6 +9,9 @@ import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "./interface/Aave/aToken.sol";
+import "./interface/Aave/ILendingPool.sol";
+import "./interface/Aave/ILendingPoolAddressesProvider.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IStudent.sol";
 import "./interface/IClassroom.sol";
@@ -41,11 +44,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     int32 public minScore;
     uint256 public override entryPrice;
     uint256 public duration;
+    uint256 public compoundApplyPercentage;
+    address public challengeAddress;
 
+    //Tokens
     IERC20 public daiToken;
     CERC20 public cDAI;
+
+    //Factory
     StudentApplicationFactory _studentApplicationFactory;
-    address public _challengeAddress;
 
     //Chainlink config
     address _oracleRandom;
@@ -57,31 +64,38 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address _linkToken;
 
     //Uniswap Config
-    address _uniswapLINK;
     address _uniswapDAI;
-    IUniswapV2Router01 public _uniswapRouter;
+    address _uniswapLINK;
+    IUniswapV2Router01 _uniswapRouter;
+
+    //Aave Config
+    ILendingPoolAddressesProvider _aaveProvider;
+    ILendingPool _aaveLendingPool;
+    address _aaveLendingPoolCore;
+    address _aTokenDAI;
 
     constructor(
-        bytes32 _name,
-        uint24 _principalCut,
-        uint24 _poolCut,
-        int32 _minScore,
-        uint256 _entryPrice,
-        uint256 _duration,
+        bytes32 name_,
+        uint24 principalCut_,
+        uint24 poolCut_,
+        int32 minScore_,
+        uint256 entryPrice_,
+        uint256 duration_,
         address payable universityAddress,
-        address challengeAddress,
+        address challengeAddress_,
         address daiAddress,
         address compoundDAIAddress,
         address studentApplicationFactoryAddress
     ) public {
-        name = _name;
-        principalCut = _principalCut;
-        poolCut = _poolCut;
-        minScore = _minScore;
-        entryPrice = _entryPrice;
-        duration = _duration;
+        name = name_;
+        principalCut = principalCut_;
+        poolCut = poolCut_;
+        minScore = minScore_;
+        entryPrice = entryPrice_;
+        duration = duration_;
+        compoundApplyPercentage = 0.5 * 1e6;
         university = IUniversity(universityAddress);
-        _challengeAddress = challengeAddress;
+        challengeAddress = challengeAddress_;
         openForApplication = false;
         classroomActive = false;
         daiToken = IERC20(daiAddress);
@@ -125,13 +139,23 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function configureUniswap(
-        address uniswapLINK,
         address uniswapDAI,
+        address uniswapLINK,
         address uniswapRouter
     ) public onlyOwner {
-        _uniswapLINK = uniswapLINK;
         _uniswapDAI = uniswapDAI;
+        _uniswapLINK = uniswapLINK;
         _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+    }
+
+    function configureAave(
+        address lendingPoolAddressesProvider
+    ) public onlyOwner {
+        _aaveProvider = ILendingPoolAddressesProvider(lendingPoolAddressesProvider);
+        _aaveLendingPool = ILendingPool(_aaveProvider.getLendingPool());
+        _aaveLendingPoolCore = _aaveProvider.getLendingPoolCore();
+        _aTokenDAI = ILendingPoolCore(_aaveLendingPoolCore)
+            .getReserveATokenAddress(address(daiToken));
     }
 
     function transferOwnershipClassroom(address newOwner) public override {
@@ -168,10 +192,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         emit LogChangeDuration(duration);
     }
 
+    function changeCompoundApplyPercentage(uint256 ppm) public onlyOwner {
+        require(ppm <= 1e6, "Classroom: can't be more that 100% in ppm");
+        compoundApplyPercentage = ppm;
+    }
+
     function changeChallenge(address addr) public onlyOwner {
         require(isClassroomEmpty(), "Classroom: can't change challenge now");
-        _challengeAddress = addr;
-        emit LogChangeChallenge(_challengeAddress);
+        challengeAddress = addr;
+        emit LogChangeChallenge(challengeAddress);
     }
 
     function viewAllApplications()
@@ -220,6 +249,14 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             "Classroom: setup oracles first"
         );
         require(
+            _uniswapDAI != address(0),
+            "Classroom: setup Uniswap first"
+        );
+        require(
+            _aaveLendingPoolCore != address(0),
+            "Classroom: setup Aave first"
+        );
+        require(
             !openForApplication,
             "Classroom: applications are already opened"
         );
@@ -248,8 +285,20 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function applyDAI() public onlyOwner {
         uint256 balance = daiToken.balanceOf(address(this));
         if (balance <= 0) return;
-        TransferHelper.safeApprove(address(daiToken), address(cDAI), balance);
-        cDAI.mint(balance);
+        uint256 compoundApply = compoundApplyPercentage.mul(balance).div(1e6);
+        uint256 aaveApply = balance.sub(compoundApply);
+        applyCompound(compoundApply);
+        applyAave(aaveApply);
+    }
+
+    function applyCompound(uint256 val) internal{
+        TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
+        cDAI.mint(val);
+    }
+
+    function applyAave(uint256 val) internal{
+        TransferHelper.safeApprove(address(daiToken), _aaveLendingPoolCore, val);
+        _aaveLendingPool.deposit(address(daiToken), val, 0);
     }
 
     function studentApply() public override {
@@ -279,7 +328,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             student,
             address(this),
             address(daiToken),
-            _challengeAddress,
+            challengeAddress,
             generateNewSeed()
         );
         _studentApplicationsLink[student] = newApplication;
@@ -335,9 +384,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function _recoverInvestment() internal returns (uint256) {
-        uint256 balance = cDAI.balanceOf(address(this));
+        uint256 balanceCompound = cDAI.balanceOf(address(this));
         cDAI.redeem(balance);
-        return balance;
+        uint256 balanceAave = aToken(_aTokenDAI).balanceOf(address(this));
+        aToken(_aTokenDAI).redeem(balanceAave);
+        return balanceCompound.add(balanceAave);
     }
 
     function processResults() public onlyOwner {
@@ -378,14 +429,14 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         uint256 nStudents = _validStudentApplications.length;
         uint256 returnsPool = _totalBalance.sub(entryPrice.mul(nStudents));
         uint256 professorPaymentPerStudent = entryPrice.mul(principalCut).div(
-            10**6
+            1e6
         );
         uint256 studentPrincipalReturn = entryPrice.sub(
             professorPaymentPerStudent
         );
         uint256 successPool = returnsPool.mul(successCount).div(nStudents);
         uint256 professorTotalPoolSuccessShare = successPool.mul(poolCut).div(
-            10**6
+            1e6
         );
         uint256 successStudentPoolShare = returnsPool
             .sub(professorTotalPoolSuccessShare)
@@ -429,12 +480,12 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         uint256 universityEmptyShare = emptyCount.mul(_entryPrice);
         uint256 universityPaymentShare = professorTotalPoolSuccessShare
             .mul(uCut)
-            .div(10**6);
+            .div(1e6);
         uint256 notEmptyCount = nStudents.sub(emptyCount);
         uint256 universitySucessPoolShare = professorPaymentPerStudent
             .mul(notEmptyCount)
             .mul(uCut)
-            .div(10**6);
+            .div(1e6);
         return universityEmptyShare
             .add(universityPaymentShare)
             .add(universitySucessPoolShare);
