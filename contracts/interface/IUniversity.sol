@@ -54,6 +54,10 @@ interface IUniversity {
 
     function recoverFundsCompound(uint256) external;
 
+    function applyFundsAave(uint256) external;
+
+    function recoverFundsAave(uint256) external;
+
     function spendBudget(address, uint256) external;
 
     function enterCompoundDAIMarket() external;

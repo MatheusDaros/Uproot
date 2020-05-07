@@ -385,7 +385,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     function _recoverInvestment() internal returns (uint256) {
         uint256 balanceCompound = cDAI.balanceOf(address(this));
-        cDAI.redeem(balance);
+        cDAI.redeem(balanceCompound);
         uint256 balanceAave = aToken(_aTokenDAI).balanceOf(address(this));
         aToken(_aTokenDAI).redeem(balanceAave);
         return balanceCompound.add(balanceAave);

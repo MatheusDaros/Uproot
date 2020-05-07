@@ -1,9 +1,7 @@
 pragma solidity ^0.6.6;
 
-import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 
-
-interface ILendingPool is IERC20 {
+interface aToken {
     function redirectInterestStream(address) external;
 
     function redirectInterestStreamOf(address, address) external;
@@ -14,7 +12,7 @@ interface ILendingPool is IERC20 {
 
     function principalBalanceOf(address) external view returns (uint256);
 
-    function isTransferAllowed(address, uint256) public view returns (bool);
+    function isTransferAllowed(address, uint256) external view returns (bool);
 
     function getInterestRedirectionAddress(address)
         external
@@ -22,9 +20,28 @@ interface ILendingPool is IERC20 {
         returns (address);
 
     function getRedirectedBalance(address) external view returns (uint256);
+
+    function totalSupply() external view returns (uint256);
+
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
+
+    function allowance(address owner, address spender)
+        external
+        view
+        returns (uint256);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+
+    function transferFrom(address sender, address recipient, uint256 amount)
+        external
+        returns (bool);
 }
 
 
 interface ILendingPoolCore {
-    function getReserveATokenAddress(address) public view returns (address);
+    function getReserveATokenAddress(address) external view returns (address);
 }

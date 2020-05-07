@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "./interface/Aave/aToken.sol";
 import "./interface/Aave/ILendingPool.sol";
 import "./interface/Aave/ILendingPoolAddressesProvider.sol";
 import "./gambi/BaseRelayRecipient.sol";
@@ -25,6 +26,7 @@ import "./MyUtils.sol";
 
 //TODO: Natspec Document ENVERYTHING
 //TODO: Sort function order from all contracts
+//TODO: Divide University in smaller contracts
 
 contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     using SafeMath for uint256;
@@ -98,8 +100,19 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     IComptroller public comptroller;
     IPriceOracle public priceOracle;
 
+    //Aave Config
+    ILendingPoolAddressesProvider _aaveProvider;
+    ILendingPool _aaveLendingPool;
+    address _aaveLendingPoolCore;
+    address _aTokenDAI;
+
+    //Tokens
     IERC20 public daiToken;
+
+    //GSN
     IRelayHub public relayHub;
+
+    //Factory
     IClassroomFactory _classroomFactory;
     IStudentFactory _studentFactory;
     address _studentApplicationFactoryAddress;
@@ -153,6 +166,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _uniswapWETH = uniswapWETH;
         _uniswapDAI = uniswapDAI;
         _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+    }
+
+    function configureAave(
+        address lendingPoolAddressesProvider
+    ) public onlyOwner {
+        _aaveProvider = ILendingPoolAddressesProvider(lendingPoolAddressesProvider);
+        _aaveLendingPool = ILendingPool(_aaveProvider.getLendingPool());
+        _aaveLendingPoolCore = _aaveProvider.getLendingPoolCore();
+        _aTokenDAI = ILendingPoolCore(_aaveLendingPoolCore)
+            .getReserveATokenAddress(address(daiToken));
     }
 
     function changeName(bytes32 val) public onlyOwner {
@@ -381,6 +404,31 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.mint(val);
     }
 
+    function recoverFundsCompound(uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        cDAI.redeemUnderlying(val);
+    }
+
+    function applyFundsAave(uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        TransferHelper.safeApprove(address(daiToken), _aaveLendingPoolCore, val);
+        _aaveLendingPool.deposit(address(daiToken), val, 0);
+    }
+
+    function recoverFundsAave(uint256 val) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        aToken(_aTokenDAI).redeem(val);
+    }
+
     function enterCompoundDAIMarket() public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -475,14 +523,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         TransferHelper.safeApprove(token, cToken, val);
         CERC20(cToken).repayBorrow(val);
-    }
-
-    function recoverFundsCompound(uint256 val) public override {
-        require(
-            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
-            "University: caller doesn't have FUNDS_MANAGER_ROLE"
-        );
-        cDAI.redeemUnderlying(val);
     }
 
     function increaseOperationalBudget(uint256 val) public onlyOwner {
