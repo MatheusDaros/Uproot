@@ -66,7 +66,7 @@ interface CERC20 {
 
     function getCash() external returns (uint256);
 
-    function balanceOfUnderlying(address) external returns (uint256);
+    function balanceOfUnderlying(address) external view returns (uint256);
 
     function borrow(uint256) external returns (uint256);
 

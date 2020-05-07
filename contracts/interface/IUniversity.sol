@@ -6,6 +6,8 @@ interface IUniversity {
 
     function availableFunds() external view returns (uint256);
 
+    function availableFundsForInvestment() external view returns (uint256);
+
     function cut() external view returns (uint24);
 
     function isValidClassroom(address) external view returns (bool);
@@ -52,9 +54,13 @@ interface IUniversity {
 
     function applyFundsCompound(uint256) external;
 
+    function appliedDAICompound() external view returns (uint256);
+
     function recoverFundsCompound(uint256) external;
 
     function applyFundsAave(uint256) external;
+
+    function appliedDAIAave() external view returns (uint256);
 
     function recoverFundsAave(uint256) external;
 

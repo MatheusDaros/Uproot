@@ -192,6 +192,12 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _studentGSNDeposit = val;
     }
 
+    function availableFundsForInvestment() public view override returns (uint256) {
+        uint256 funds = daiToken.balanceOf(address(this));
+        if (funds < operationalBudget) return 0;
+        return funds.sub(operationalBudget);
+    }
+
     function availableFunds() public view override returns (uint256) {
         uint256 funds = daiToken.balanceOf(address(this));
         if (funds < endowmentLocked.add(operationalBudget)) return 0;
@@ -404,6 +410,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cDAI.mint(val);
     }
 
+    function appliedDAICompound() public view override returns (uint256) {
+        return cDAI.balanceOfUnderlying(address(this));
+    }
+
     function recoverFundsCompound(uint256 val) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
@@ -419,6 +429,10 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         TransferHelper.safeApprove(address(daiToken), _aaveLendingPoolCore, val);
         _aaveLendingPool.deposit(address(daiToken), val, 0);
+    }
+
+    function appliedDAIAave() public view override returns (uint256) {
+        return aToken(_aTokenDAI).balanceOf(address(this));
     }
 
     function recoverFundsAave(uint256 val) public override {
@@ -721,7 +735,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             deadline
         );
     }
-
     
     function donateETH(uint256 donation) public payable override {
         // This function is vulnerable to sandwich attacks. Since the very nature of this function is for a donor to donate money, it is not needed to prevent the donor from manipulating its own donation
@@ -763,7 +776,4 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         returnsReceived = revenueReceived.add(financialReturns);
         endowmentLocked = endowmentLocked.add(financialReturns);
     }
-
-
-    //TODO: implement funds manager
 }
