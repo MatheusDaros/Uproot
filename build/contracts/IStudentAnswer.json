@@ -28,42 +28,43 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"getOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSeed\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol\":\"IStudentAnswer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol\":{\"keccak256\":\"0x24a1c8107884749c54f0cb13036fdbfde189e4702c0d7a4f78688ba0b3a010bf\",\"urls\":[\"bzz-raw://009e9552db94f127b54017efb880696c1e9211c07326dfc4649012f2e8f974b1\",\"dweb:/ipfs/QmTH8hq3Xy5bDTwqu5tnxe3WNgWSjroXSNKcbXo9B6614Y\"]},\"@openzeppelin/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0x9a8c691b81a4a48adbbd5b010faa56a168c189e711495c16347d93b60b805f82\",\"urls\":[\"bzz-raw://d951d626ed7bfe1a2d7a6bd4af315ff8691929bd567594d6ab53599fe9e17e4e\",\"dweb:/ipfs/QmYkGeowpa6Bjr9aaDirWdDo7hSfShzzZhanKC4nTfRhLj\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.6+commit.6c089d02\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"getOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getSeed\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol\":\"IStudentAnswer\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol\":{\"keccak256\":\"0x4656ca8d58e0cf580a961aca02a951368368fc48feea6d6c5e487501bbd11dbb\",\"urls\":[\"bzz-raw://0bb7803750ca5c8302ea74ea5ca8fe1aa901fade7444f234ba2ccfe4730aa5eb\",\"dweb:/ipfs/QmbJrP9zTWB6rKRojR8a3ySc4JURJoidt686ijHXLyEYCG\"]},\"@openzeppelin/contracts/GSN/Context.sol\":{\"keccak256\":\"0x0de74dfa6b37943c1b834cbd8fb7a8d052e5ff80c7adb33692102dd6cd2985e9\",\"urls\":[\"bzz-raw://9d2d827fcf4a838f5821732c0acd6a40d21c2a5a2cfe2563feec91465f47bb60\",\"dweb:/ipfs/Qmex3wMKf5Sghbfvr288RUg1kP2uAyTMf11w83WbMbpQQc\"]},\"@openzeppelin/contracts/access/Ownable.sol\":{\"keccak256\":\"0x9a8c691b81a4a48adbbd5b010faa56a168c189e711495c16347d93b60b805f82\",\"urls\":[\"bzz-raw://d951d626ed7bfe1a2d7a6bd4af315ff8691929bd567594d6ab53599fe9e17e4e\",\"dweb:/ipfs/QmYkGeowpa6Bjr9aaDirWdDo7hSfShzzZhanKC4nTfRhLj\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "immutableReferences": {},
   "sourceMap": "",
   "deployedSourceMap": "",
-  "source": "pragma solidity 0.6.6;\r\n\r\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\r\n\r\n\r\ninterface IStudentAnswer {\r\n    function getOwner() external view returns (address);\r\n\r\n    function getSeed() external view returns (bytes32);\r\n}\r\n",
+  "source": "pragma solidity ^0.6.6;\r\n\r\nimport \"@openzeppelin/contracts/access/Ownable.sol\";\r\n\r\n\r\ninterface IStudentAnswer {\r\n    function getOwner() external view returns (address);\r\n\r\n    function getSeed() external view returns (bytes32);\r\n}\r\n",
   "sourcePath": "/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol",
   "ast": {
     "absolutePath": "/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol",
     "exportedSymbols": {
       "IStudentAnswer": [
-        6579
+        6986
       ]
     },
-    "id": 6580,
+    "id": 6987,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6567,
+        "id": 6974,
         "literals": [
           "solidity",
+          "^",
           "0.6",
           ".6"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:22:24"
+        "src": "0:23:25"
       },
       {
         "absolutePath": "@openzeppelin/contracts/access/Ownable.sol",
         "file": "@openzeppelin/contracts/access/Ownable.sol",
-        "id": 6568,
+        "id": 6975,
         "nodeType": "ImportDirective",
-        "scope": 6580,
-        "sourceUnit": 11175,
-        "src": "26:52:24",
+        "scope": 6987,
+        "sourceUnit": 11640,
+        "src": "27:52:25",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -74,9 +75,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 6579,
+        "id": 6986,
         "linearizedBaseContracts": [
-          6579
+          6986
         ],
         "name": "IStudentAnswer",
         "nodeType": "ContractDefinition",
@@ -85,7 +86,7 @@
             "body": null,
             "documentation": null,
             "functionSelector": "893d20e8",
-            "id": 6573,
+            "id": 6980,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -93,24 +94,24 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 6569,
+              "id": 6976,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "133:2:24"
+              "src": "134:2:25"
             },
             "returnParameters": {
-              "id": 6572,
+              "id": 6979,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6571,
+                  "id": 6978,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 6573,
-                  "src": "159:7:24",
+                  "scope": 6980,
+                  "src": "160:7:25",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -118,10 +119,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 6570,
+                    "id": 6977,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "159:7:24",
+                    "src": "160:7:25",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -132,10 +133,10 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "158:9:24"
+              "src": "159:9:25"
             },
-            "scope": 6579,
-            "src": "116:52:24",
+            "scope": 6986,
+            "src": "117:52:25",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -144,7 +145,7 @@
             "body": null,
             "documentation": null,
             "functionSelector": "39e7357c",
-            "id": 6578,
+            "id": 6985,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -152,24 +153,24 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 6574,
+              "id": 6981,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "192:2:24"
+              "src": "193:2:25"
             },
             "returnParameters": {
-              "id": 6577,
+              "id": 6984,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6576,
+                  "id": 6983,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 6578,
-                  "src": "218:7:24",
+                  "scope": 6985,
+                  "src": "219:7:25",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -177,10 +178,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 6575,
+                    "id": 6982,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "218:7:24",
+                    "src": "219:7:25",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -190,49 +191,50 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "217:9:24"
+              "src": "218:9:25"
             },
-            "scope": 6579,
-            "src": "176:51:24",
+            "scope": 6986,
+            "src": "177:51:25",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 6580,
-        "src": "84:146:24"
+        "scope": 6987,
+        "src": "85:146:25"
       }
     ],
-    "src": "0:232:24"
+    "src": "0:233:25"
   },
   "legacyAST": {
     "absolutePath": "/mnt/e/Repositories/Uproot/contracts/interface/IStudentAnswer.sol",
     "exportedSymbols": {
       "IStudentAnswer": [
-        6579
+        6986
       ]
     },
-    "id": 6580,
+    "id": 6987,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 6567,
+        "id": 6974,
         "literals": [
           "solidity",
+          "^",
           "0.6",
           ".6"
         ],
         "nodeType": "PragmaDirective",
-        "src": "0:22:24"
+        "src": "0:23:25"
       },
       {
         "absolutePath": "@openzeppelin/contracts/access/Ownable.sol",
         "file": "@openzeppelin/contracts/access/Ownable.sol",
-        "id": 6568,
+        "id": 6975,
         "nodeType": "ImportDirective",
-        "scope": 6580,
-        "sourceUnit": 11175,
-        "src": "26:52:24",
+        "scope": 6987,
+        "sourceUnit": 11640,
+        "src": "27:52:25",
         "symbolAliases": [],
         "unitAlias": ""
       },
@@ -243,9 +245,9 @@
         "contractKind": "interface",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 6579,
+        "id": 6986,
         "linearizedBaseContracts": [
-          6579
+          6986
         ],
         "name": "IStudentAnswer",
         "nodeType": "ContractDefinition",
@@ -254,7 +256,7 @@
             "body": null,
             "documentation": null,
             "functionSelector": "893d20e8",
-            "id": 6573,
+            "id": 6980,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -262,24 +264,24 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 6569,
+              "id": 6976,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "133:2:24"
+              "src": "134:2:25"
             },
             "returnParameters": {
-              "id": 6572,
+              "id": 6979,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6571,
+                  "id": 6978,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 6573,
-                  "src": "159:7:24",
+                  "scope": 6980,
+                  "src": "160:7:25",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -287,10 +289,10 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 6570,
+                    "id": 6977,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
-                    "src": "159:7:24",
+                    "src": "160:7:25",
                     "stateMutability": "nonpayable",
                     "typeDescriptions": {
                       "typeIdentifier": "t_address",
@@ -301,10 +303,10 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "158:9:24"
+              "src": "159:9:25"
             },
-            "scope": 6579,
-            "src": "116:52:24",
+            "scope": 6986,
+            "src": "117:52:25",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
@@ -313,7 +315,7 @@
             "body": null,
             "documentation": null,
             "functionSelector": "39e7357c",
-            "id": 6578,
+            "id": 6985,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
@@ -321,24 +323,24 @@
             "nodeType": "FunctionDefinition",
             "overrides": null,
             "parameters": {
-              "id": 6574,
+              "id": 6981,
               "nodeType": "ParameterList",
               "parameters": [],
-              "src": "192:2:24"
+              "src": "193:2:25"
             },
             "returnParameters": {
-              "id": 6577,
+              "id": 6984,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 6576,
+                  "id": 6983,
                   "mutability": "mutable",
                   "name": "",
                   "nodeType": "VariableDeclaration",
                   "overrides": null,
-                  "scope": 6578,
-                  "src": "218:7:24",
+                  "scope": 6985,
+                  "src": "219:7:25",
                   "stateVariable": false,
                   "storageLocation": "default",
                   "typeDescriptions": {
@@ -346,10 +348,10 @@
                     "typeString": "bytes32"
                   },
                   "typeName": {
-                    "id": 6575,
+                    "id": 6982,
                     "name": "bytes32",
                     "nodeType": "ElementaryTypeName",
-                    "src": "218:7:24",
+                    "src": "219:7:25",
                     "typeDescriptions": {
                       "typeIdentifier": "t_bytes32",
                       "typeString": "bytes32"
@@ -359,20 +361,20 @@
                   "visibility": "internal"
                 }
               ],
-              "src": "217:9:24"
+              "src": "218:9:25"
             },
-            "scope": 6579,
-            "src": "176:51:24",
+            "scope": 6986,
+            "src": "177:51:25",
             "stateMutability": "view",
             "virtual": false,
             "visibility": "external"
           }
         ],
-        "scope": 6580,
-        "src": "84:146:24"
+        "scope": 6987,
+        "src": "85:146:25"
       }
     ],
-    "src": "0:232:24"
+    "src": "0:233:25"
   },
   "compiler": {
     "name": "solc",
@@ -380,7 +382,7 @@
   },
   "networks": {},
   "schemaVersion": "3.1.0",
-  "updatedAt": "2020-05-07T01:16:46.339Z",
+  "updatedAt": "2020-05-07T17:22:28.526Z",
   "devdoc": {
     "methods": {}
   },

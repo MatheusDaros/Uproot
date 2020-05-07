@@ -1,4 +1,4 @@
-pragma solidity 0.6.6;
+pragma solidity ^0.6.6;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -87,8 +87,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     uint256 public endowmentLocked;
     // Total amount of funds allowed for expenses
     uint256 public operationalBudget;
-
-    //TODO: resolve students and classrooms addresses using ENS
 
     //Uniswap Config
     address _uniswapWETH;
