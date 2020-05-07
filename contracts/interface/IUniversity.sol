@@ -64,6 +64,14 @@ interface IUniversity {
 
     function exitCompoundDAIMarket() external;
 
+    function enterCompoundMarket(address) external;
+
+    function exitCompoundMarket(address) external;
+
+    function setAaveMarketCollateralForDAI(bool) external;
+
+    function setAaveMarketCollateral(address, bool) external;
+
     function getCompoundLiquidityAndShortfall()
         external
         view
@@ -84,4 +92,10 @@ interface IUniversity {
     function compoundGetBorrow(address) external view returns (uint256);
 
     function compoundRepayBorrow(address, address, uint256) external;
+
+    function aaveGetBorrow(address, uint256, bool) external;
+
+    function aaveRepayBorrow(address, uint256) external;
+    
+    function aaveSwapBorrowRateMode(address) external;
 }

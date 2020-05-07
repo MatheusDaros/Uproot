@@ -429,13 +429,29 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         aToken(_aTokenDAI).redeem(val);
     }
 
+    function setAaveMarketCollateralForDAI(bool state) public override {
+        setAaveMarketCollateral(address(daiToken), state);
+    }
+
+    function setAaveMarketCollateral(address token, bool state) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        _aaveLendingPool.setUserUseReserveAsCollateral(token, state);
+    }
+
     function enterCompoundDAIMarket() public override {
+        enterCompoundMarket(address(cDAI));
+    }
+
+    function enterCompoundMarket(address token) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
         address[] memory cTokens = new address[](1);
-        cTokens[0] = address(cDAI);
+        cTokens[0] = token;
         uint256[] memory errors = comptroller.enterMarkets(cTokens);
         if (errors[0] != 0) {
             revert("University: Comptroller.enterMarkets failed.");
@@ -443,11 +459,15 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     }
 
     function exitCompoundDAIMarket() public override {
+        exitCompoundMarket(address(cDAI));
+    }
+
+    function exitCompoundMarket(address token) public override {
         require(
             hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
             "University: caller doesn't have FUNDS_MANAGER_ROLE"
         );
-        uint256 error = comptroller.exitMarket(address(cDAI));
+        uint256 error = comptroller.exitMarket(token);
         if (error != 0) {
             revert("University: Comptroller.exitMarket failed.");
         }
@@ -523,6 +543,38 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         TransferHelper.safeApprove(token, cToken, val);
         CERC20(cToken).repayBorrow(val);
+    }
+
+    function aaveGetBorrow(address token, uint256 val, bool variableRate) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        uint8 vRate = variableRate ? 2 : 1;
+        _aaveLendingPool.borrow(token, val, vRate, 0);
+    }
+
+    function aaveRepayBorrow(address token, uint256 val)
+        public 
+        override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        require(
+            IERC20(token).balanceOf(address(this)) >= val,
+            "University: not enough of this token stored"
+        );
+        TransferHelper.safeApprove(token, _aaveProvider.getLendingPoolCore(), val);
+        _aaveLendingPool.repay(token, val, address(this));
+    }
+
+    function aaveSwapBorrowRateMode(address token) public override {
+        require(
+            hasRole(FUNDS_MANAGER_ROLE, _msgSender()),
+            "University: caller doesn't have FUNDS_MANAGER_ROLE"
+        );
+        _aaveLendingPool.swapBorrowRateMode(token);
     }
 
     function increaseOperationalBudget(uint256 val) public onlyOwner {
