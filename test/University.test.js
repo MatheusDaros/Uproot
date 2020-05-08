@@ -26,6 +26,8 @@ contract('University', accounts => {
 
   let contractInstance;
   const ownerAddress = accounts[0];
+  const student1Address = accounts[1];
+  const student2Address = accounts[2];
 
   /*
   before(async () => {
@@ -99,11 +101,56 @@ contract('University', accounts => {
       assert.equal(resultString, newName, 'wrong name');
     });
     it('event emmited', async () => {
-      const newName = web3.utils.fromAscii("Novo Nome");
+      const newName = web3.utils.utf8ToHex("Novo Nome");
       const result = await contractInstance.changeName(newName, { from: ownerAddress });
       Assert.eventEmitted(
         result,
         'LogChangeName');
+    });
+  });
+
+  describe("changeCut", () => {
+    it('success', async () => {
+      const newCut = 3;
+      await contractInstance.changeCut(web3.utils.numberToHex(newCut), { from: ownerAddress });
+      const result = await contractInstance.cut();
+      const resultString = web3.utils.hexToNumber(result);
+      assert.equal(resultString, newCut, 'wrong cut');
+    });
+    it('event emmited', async () => {
+      const newCut = web3.utils.numberToHex(3);
+      const result = await contractInstance.changeCut(newCut, { from: ownerAddress });
+      Assert.eventEmitted(
+        result,
+        'LogChangeCut');
+    });
+  });
+
+  /* PRIVATE
+  describe("changeStudentGSNDeposit", () => {
+    it('success', async () => {
+      const newGSN = "1000000";
+      await contractInstance.changeStudentGSNDeposit(web3.utils.utf8ToHex(newGSN), { from: ownerAddress });
+      const result = await contractInstance.cut();
+      const resultString = web3.utils.hexToUtf8(result);
+      assert.equal(resultString, newGSN, 'wrong cut');
+    });
+    it('event emmited', async () => {
+      const newGSN = web3.utils.utf8ToHex("1000000");
+      const result = await contractInstance.changeStudentGSNDeposit(newGSN, { from: ownerAddress });
+      Assert.eventEmitted(
+        result,
+        'LogchangeStudentGSNDeposit');
+    });
+  });
+  */
+
+  describe("New Student", () => {
+    it('success', async () => {
+      const sName = "Flavio Neto";
+      await contractInstance.studentSelfRegister(web3.utils.utf8ToHex(sName), { from: student1Address });
+      const result = await contractInstance.studentIsRegistered(student1Address, { from: ownerAddress });
+      assert.equal(result, true, 'wrong');
     });
   });
 
