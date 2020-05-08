@@ -1,10 +1,8 @@
 pragma solidity ^0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
 import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
@@ -18,7 +16,6 @@ import "./interface/IClassroom.sol";
 import "./interface/IStudentApplication.sol";
 import "./interface/IClassroomChallenge.sol";
 import "./interface/IStudentApplicationFactory.sol";
-import "./StudentApplicationFactory.sol";
 import "./MyUtils.sol";
 
 
@@ -31,8 +28,6 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address[] _studentApplications;
     address[] _validStudentApplications;
     mapping(address => address) _studentApplicationsLink;
-    address[] _studentsLookUp;
-    address[] _applicationsLookUp;
     uint256 _endDate;
     uint256 _totalBalance;
     bytes32 _seed;
@@ -48,11 +43,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address public challengeAddress;
 
     //Tokens
-    IERC20 public daiToken;
-    CERC20 public cDAI;
+    address public daiToken;
+    address public cDAI;
 
     //Factory
-    StudentApplicationFactory _studentApplicationFactory;
+    IStudentApplicationFactory _studentApplicationFactory;
 
     //Chainlink config
     address _oracleRandom;
@@ -98,9 +93,9 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         challengeAddress = challengeAddress_;
         openForApplication = false;
         classroomActive = false;
-        daiToken = IERC20(daiAddress);
-        cDAI = CERC20(compoundDAIAddress);
-        _studentApplicationFactory = StudentApplicationFactory(studentApplicationFactoryAddress);
+        daiToken = daiAddress;
+        cDAI = compoundDAIAddress;
+        _studentApplicationFactory = IStudentApplicationFactory(studentApplicationFactoryAddress);
     }
 
     event LogOpenApplications();
@@ -203,15 +198,6 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         emit LogChangeChallenge(challengeAddress);
     }
 
-    function viewAllApplications()
-        public
-        view
-        onlyOwner
-        returns (address[] memory)
-    {
-        return _applicationsLookUp;
-    }
-
     function viewMyApplication() public view override returns (address) {
         return viewApplication(_msgSender());
     }
@@ -222,15 +208,6 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             "Classroom: read permission denied"
         );
         return _studentApplicationsLink[addr];
-    }
-
-    function viewAllStudents()
-        public
-        view
-        onlyOwner
-        returns (address[] memory)
-    {
-        return _studentsLookUp;
     }
 
     function isClassroomEmpty() public view returns (bool) {
@@ -283,7 +260,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     //public onlyOwner allow the professor to apply money before and after closing applications
     function applyDAI() public onlyOwner {
-        uint256 balance = daiToken.balanceOf(address(this));
+        uint256 balance = IERC20(daiToken).balanceOf(address(this));
         if (balance <= 0) return;
         uint256 compoundApply = compoundApplyPercentage.mul(balance).div(1e6);
         uint256 aaveApply = balance.sub(compoundApply);
@@ -293,7 +270,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     function applyFundsCompound(uint256 val) internal{
         TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
-        cDAI.mint(val);
+        CERC20(cDAI).mint(val);
     }
 
     function applyFundsAave(uint256 val) internal{
@@ -336,8 +313,6 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             student,
             newApplication
         );
-        _studentsLookUp.push(student);
-        _applicationsLookUp.push(newApplication);
         return newApplication;
     }
 
@@ -348,7 +323,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function beginCourse() public onlyOwner {
         require(!openForApplication, "Classroom: applications are still open");
         require(
-            daiToken.balanceOf(address(this)) == 0,
+            IERC20(daiToken).balanceOf(address(this)) == 0,
             "Classroom: invest all balance before begin"
         );
         checkApplications();
@@ -384,8 +359,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function _recoverInvestment() internal returns (uint256) {
-        uint256 balanceCompound = cDAI.balanceOf(address(this));
-        cDAI.redeem(balanceCompound);
+        uint256 balanceCompound = CERC20(cDAI).balanceOf(address(this));
+        CERC20(cDAI).redeem(balanceCompound);
         uint256 balanceAave = aToken(_aTokenDAI).balanceOf(address(this));
         aToken(_aTokenDAI).redeem(balanceAave);
         return balanceCompound.add(balanceAave);
@@ -394,7 +369,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function processResults() public onlyOwner {
         require(courseFinished, "Classroom: course not finished");
         require(
-            _totalBalance <= daiToken.balanceOf(address(this)),
+            _totalBalance <= IERC20(daiToken).balanceOf(address(this)),
             "Classroom: not enough DAI to proceed"
         );
         (uint256 successCount, uint256 emptyCount) = _startAnswerVerification();
@@ -544,10 +519,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function withdrawAllResults() public onlyOwner {
-        daiToken.transferFrom(
+        IERC20(daiToken).transferFrom(
             address(this),
             owner(),
-            daiToken.balanceOf(address(this))
+            IERC20(daiToken).balanceOf(address(this))
         );
     }
 

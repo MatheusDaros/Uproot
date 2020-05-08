@@ -16,5 +16,6 @@ module.exports = {
     },
     paths: {
         tests: './testsBuidler'
-    }
+    },
+    optimizer: { enabled: true, runs: 2 }
 };
