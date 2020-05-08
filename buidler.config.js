@@ -12,10 +12,11 @@ task("accounts", "Prints the list of accounts", async() => {
 
 module.exports = {
     solc: {
-        version: '0.6.6'
+        version: '0.6.6',
+        optimizer: { enabled: true, runs: 2 }
     },
     paths: {
-        tests: './testsBuidler'
-    },
-    optimizer: { enabled: true, runs: 2 }
+        tests: './testsBuidler',
+        artifacts: './build/contracts'
+    }
 };
