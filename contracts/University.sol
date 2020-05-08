@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "@nomiclabs/buidler/console.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./gambi/IRelayHub.sol";
@@ -247,6 +248,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// @param sName Name of the Student
     /// @return the smart contract address for this Student instance in this University
     function studentSelfRegister(bytes32 sName) public returns (address) {
+        console.log("start");
         return _newStudent(sName, _msgSender());
     }
 
@@ -258,12 +260,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             _studentApplicationsMapping[_msgSenderGSN()].length == 0,
             "University: student already registered"
         );
+        console.log("step1");
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
         _studentApplicationsMapping[caller].push(address(0));
+        console.log("step2");
         address student = IStudentFactory(_studentFactory).newStudent(sName, address(this));
         IStudent(student).transferOwnershipStudent(caller);
+        console.log("step3");
         address studentAddr = address(student);
         grantRole(STUDENT_IDENTITY_ROLE, studentAddr);
+        console.log("step4");
         return address(studentAddr);
     }
 

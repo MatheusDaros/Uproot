@@ -1,16 +1,16 @@
 const { solidity, MockProvider, deployContract } = require('ethereum-waffle');
 const { use, expect } = require('chai');
 const { ethers } = require("@nomiclabs/buidler");
-const University = require('../build/contracts/University.json');
 
 use(solidity);
 require('dotenv').config();
 
 //TODO library and require
 function getAddress(file) {
-    let input = require(file);
-    let dKey = Object.keys(input.networks)[0];
-    return input.networks[dKey].address;
+    return "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+    //let input = require(file);
+    //let dKey = Object.keys(input.networks)[0];
+    //return input.networks[dKey].address;
 }
 
 //University Params
@@ -26,23 +26,32 @@ const cDaiAddress = getAddress('../build/contracts/ERC20.json');
 
 
 describe('University smart contract', () => {
-    const provider = new MockProvider();
-    const [ownerAddress] = provider.getWallets();
 
-    async function deployBefore() {
-        const contract = await deployContract(ownerAddress, University, [name, cut, studentGSNDeposit, daiAddress, cDaiAddress, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress]);
-        return contract;
-    }
+    let CFactory;
+    let contract;
+    let ownerAddress;
+    let student1;
 
-    it("must register name at deploy", async() => {
-        const contract = await deployBefore();
-        expect(await contract.name()).to.equal(name);
+    beforeEach(async function() {
+        CFactory = await ethers.getContractFactory("University");
+        [ownerAddress, student1] = await ethers.getSigners();
+        contract = await CFactory.deploy(name, cut, studentGSNDeposit, daiAddress, cDaiAddress, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress);
+        await contract.deployed();
     });
 
-    //    it('Student register success', async() => {
-    //        const sName = "Flavio Neto";
-    //        await contractInstance.studentSelfRegister(web3.utils.utf8ToHex(sName), { from: student1Address });
-    //        const result = await contractInstance.studentIsRegistered(student1Address, { from: ownerAddress });
-    //        assert.equal(result, true, 'wrong');
-    //    });
+    describe("Deployment", function() {
+
+        it("must register name at deploy", async() => {
+            expect(await contract.name()).to.equal(name);
+        });
+
+        it('Student register success', async() => {
+            const sName = ethers.utils.formatBytes32String("Flavio Neto");
+            const studentContract = await contract.connect(student1).studentSelfRegister(sName);
+            expect(await contract.name()).to.equal(name);
+            //await contractInstance.studentSelfRegister(web3.utils.utf8ToHex(sName), { from: student1Address });
+            //const result = await contractInstance.studentIsRegistered(student1Address, { from: ownerAddress });
+            //assert.equal(result, true, 'wrong');
+        });
+    });
 });
