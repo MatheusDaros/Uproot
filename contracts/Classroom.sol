@@ -287,16 +287,16 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         if (balance <= 0) return;
         uint256 compoundApply = compoundApplyPercentage.mul(balance).div(1e6);
         uint256 aaveApply = balance.sub(compoundApply);
-        applyCompound(compoundApply);
-        applyAave(aaveApply);
+        applyFundsCompound(compoundApply);
+        applyFundsAave(aaveApply);
     }
 
-    function applyCompound(uint256 val) internal{
+    function applyFundsCompound(uint256 val) internal{
         TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
         cDAI.mint(val);
     }
 
-    function applyAave(uint256 val) internal{
+    function applyFundsAave(uint256 val) internal{
         TransferHelper.safeApprove(address(daiToken), _aaveLendingPoolCore, val);
         _aaveLendingPool.deposit(address(daiToken), val, 0);
     }

@@ -62,7 +62,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -75,7 +76,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -108,7 +110,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -121,7 +124,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -134,7 +138,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -147,7 +152,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -188,7 +194,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -207,7 +214,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -220,7 +228,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [],
@@ -314,7 +323,7 @@
         "id": 3323,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 11934,
+        "sourceUnit": 12051,
         "src": "27:51:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -325,7 +334,7 @@
         "id": 3324,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 11531,
+        "sourceUnit": 11648,
         "src": "80:58:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -336,7 +345,7 @@
         "id": 3325,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 11640,
+        "sourceUnit": 11757,
         "src": "140:52:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -347,7 +356,7 @@
         "id": 3326,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 12012,
+        "sourceUnit": 12129,
         "src": "194:56:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -358,7 +367,7 @@
         "id": 3327,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 12076,
+        "sourceUnit": 12193,
         "src": "252:51:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -369,7 +378,7 @@
         "id": 3328,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 12631,
+        "sourceUnit": 12748,
         "src": "305:61:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -380,7 +389,7 @@
         "id": 3329,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 7346,
+        "sourceUnit": 7463,
         "src": "368:37:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -391,7 +400,7 @@
         "id": 3330,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6973,
+        "sourceUnit": 7090,
         "src": "407:34:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -402,7 +411,7 @@
         "id": 3331,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6867,
+        "sourceUnit": 6984,
         "src": "443:36:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -413,7 +422,7 @@
         "id": 3332,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 7046,
+        "sourceUnit": 7163,
         "src": "481:45:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -424,7 +433,7 @@
         "id": 3333,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6987,
+        "sourceUnit": 7104,
         "src": "528:40:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -435,7 +444,7 @@
         "id": 3334,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6889,
+        "sourceUnit": 7006,
         "src": "570:45:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -450,10 +459,10 @@
               "id": 3335,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11639,
+              "referencedDeclaration": 11756,
               "src": "652:7:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$11639",
+                "typeIdentifier": "t_contract$_Ownable_$11756",
                 "typeString": "contract Ownable"
               }
             },
@@ -468,10 +477,10 @@
               "id": 3337,
               "name": "IStudentApplication",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 7045,
+              "referencedDeclaration": 7162,
               "src": "661:19:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IStudentApplication_$7045",
+                "typeIdentifier": "t_contract$_IStudentApplication_$7162",
                 "typeString": "contract IStudentApplication"
               }
             },
@@ -481,9 +490,9 @@
           }
         ],
         "contractDependencies": [
-          7045,
-          11265,
-          11639
+          7162,
+          11382,
+          11756
         ],
         "contractKind": "contract",
         "documentation": null,
@@ -491,9 +500,9 @@
         "id": 3815,
         "linearizedBaseContracts": [
           3815,
-          7045,
-          11639,
-          11265
+          7162,
+          11756,
+          11382
         ],
         "name": "StudentApplication",
         "nodeType": "ContractDefinition",
@@ -505,10 +514,10 @@
               "id": 3339,
               "name": "SafeMath",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11933,
+              "referencedDeclaration": 12050,
               "src": "694:8:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_SafeMath_$11933",
+                "typeIdentifier": "t_contract$_SafeMath_$12050",
                 "typeString": "library SafeMath"
               }
             },
@@ -538,7 +547,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IERC20_$12011",
+              "typeIdentifier": "t_contract$_IERC20_$12128",
               "typeString": "contract IERC20"
             },
             "typeName": {
@@ -546,10 +555,10 @@
               "id": 3342,
               "name": "IERC20",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 12011,
+              "referencedDeclaration": 12128,
               "src": "723:6:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC20_$12011",
+                "typeIdentifier": "t_contract$_IERC20_$12128",
                 "typeString": "contract IERC20"
               }
             },
@@ -568,7 +577,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+              "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
               "typeString": "contract IClassroomChallenge"
             },
             "typeName": {
@@ -576,10 +585,10 @@
               "id": 3344,
               "name": "IClassroomChallenge",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6888,
+              "referencedDeclaration": 7005,
               "src": "752:19:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                 "typeString": "contract IClassroomChallenge"
               }
             },
@@ -649,7 +658,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+              "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
               "typeString": "contract IStudentAnswer"
             },
             "typeName": {
@@ -657,10 +666,10 @@
               "id": 3354,
               "name": "IStudentAnswer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6986,
+              "referencedDeclaration": 7103,
               "src": "874:14:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                 "typeString": "contract IStudentAnswer"
               }
             },
@@ -1123,7 +1132,7 @@
                       "referencedDeclaration": 3343,
                       "src": "1502:8:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20_$12011",
+                        "typeIdentifier": "t_contract$_IERC20_$12128",
                         "typeString": "contract IERC20"
                       }
                     },
@@ -1157,10 +1166,10 @@
                         "name": "IERC20",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12011,
+                        "referencedDeclaration": 12128,
                         "src": "1513:6:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IERC20_$12011_$",
+                          "typeIdentifier": "t_type$_t_contract$_IERC20_$12128_$",
                           "typeString": "type(contract IERC20)"
                         }
                       },
@@ -1175,13 +1184,13 @@
                       "src": "1513:18:9",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20_$12011",
+                        "typeIdentifier": "t_contract$_IERC20_$12128",
                         "typeString": "contract IERC20"
                       }
                     },
                     "src": "1502:29:9",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IERC20_$12011",
+                      "typeIdentifier": "t_contract$_IERC20_$12128",
                       "typeString": "contract IERC20"
                     }
                   },
@@ -1252,7 +1261,7 @@
                       "referencedDeclaration": 3345,
                       "src": "1565:10:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                        "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                         "typeString": "contract IClassroomChallenge"
                       }
                     },
@@ -1286,10 +1295,10 @@
                         "name": "IClassroomChallenge",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 6888,
+                        "referencedDeclaration": 7005,
                         "src": "1578:19:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IClassroomChallenge_$6888_$",
+                          "typeIdentifier": "t_type$_t_contract$_IClassroomChallenge_$7005_$",
                           "typeString": "type(contract IClassroomChallenge)"
                         }
                       },
@@ -1304,13 +1313,13 @@
                       "src": "1578:37:9",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                        "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                         "typeString": "contract IClassroomChallenge"
                       }
                     },
                     "src": "1565:50:9",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                      "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                       "typeString": "contract IClassroomChallenge"
                     }
                   },
@@ -1374,10 +1383,10 @@
                             "name": "IClassroom",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6866,
+                            "referencedDeclaration": 6983,
                             "src": "1640:10:9",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_contract$_IClassroom_$6866_$",
+                              "typeIdentifier": "t_type$_t_contract$_IClassroom_$6983_$",
                               "typeString": "type(contract IClassroom)"
                             }
                           },
@@ -1392,7 +1401,7 @@
                           "src": "1640:29:9",
                           "tryCall": false,
                           "typeDescriptions": {
-                            "typeIdentifier": "t_contract$_IClassroom_$6866",
+                            "typeIdentifier": "t_contract$_IClassroom_$6983",
                             "typeString": "contract IClassroom"
                           }
                         },
@@ -1403,7 +1412,7 @@
                         "lValueRequested": false,
                         "memberName": "entryPrice",
                         "nodeType": "MemberAccess",
-                        "referencedDeclaration": 6852,
+                        "referencedDeclaration": 6969,
                         "src": "1640:40:9",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_external_view$__$returns$_t_uint256_$",
@@ -1610,7 +1619,7 @@
           },
           {
             "baseFunctions": [
-              7001
+              7118
             ],
             "body": {
               "id": 3436,
@@ -1653,7 +1662,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "1745:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -1722,7 +1731,7 @@
           },
           {
             "baseFunctions": [
-              7013
+              7130
             ],
             "body": {
               "id": 3462,
@@ -1764,7 +1773,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "1922:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -1829,7 +1838,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "1957:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -1862,7 +1871,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "1973:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -2091,7 +2100,7 @@
           },
           {
             "baseFunctions": [
-              6993
+              7110
             ],
             "body": {
               "id": 3485,
@@ -2133,7 +2142,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2204:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -2198,7 +2207,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2239:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -2231,7 +2240,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "2255:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -2451,7 +2460,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2468:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -2516,7 +2525,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2503:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -2549,7 +2558,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "2519:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -2659,7 +2668,7 @@
                         "referencedDeclaration": 3345,
                         "src": "2622:10:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       }
@@ -2667,7 +2676,7 @@
                     "expression": {
                       "argumentTypes": [
                         {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       ],
@@ -2774,7 +2783,7 @@
           },
           {
             "baseFunctions": [
-              7028
+              7145
             ],
             "body": {
               "id": 3541,
@@ -2925,7 +2934,7 @@
                             "referencedDeclaration": 3343,
                             "src": "2901:8:9",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           }
@@ -2933,7 +2942,7 @@
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           ],
@@ -3055,10 +3064,10 @@
                         "name": "TransferHelper",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12630,
+                        "referencedDeclaration": 12747,
                         "src": "2847:14:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12630_$",
+                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12747_$",
                           "typeString": "type(library TransferHelper)"
                         }
                       },
@@ -3069,7 +3078,7 @@
                       "lValueRequested": false,
                       "memberName": "safeTransferFrom",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 12604,
+                      "referencedDeclaration": 12721,
                       "src": "2847:31:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_address_$_t_address_$_t_uint256_$returns$__$",
@@ -3193,7 +3202,7 @@
           },
           {
             "baseFunctions": [
-              7031
+              7148
             ],
             "body": {
               "id": 3561,
@@ -3407,7 +3416,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "3109:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -3446,7 +3455,7 @@
           },
           {
             "baseFunctions": [
-              7034
+              7151
             ],
             "body": {
               "id": 3581,
@@ -3660,7 +3669,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "3367:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -3699,7 +3708,7 @@
           },
           {
             "baseFunctions": [
-              6996
+              7113
             ],
             "body": {
               "id": 3618,
@@ -3851,7 +3860,7 @@
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                        "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                         "typeString": "contract IStudentAnswer"
                       },
                       "typeName": {
@@ -3859,10 +3868,10 @@
                         "id": 3594,
                         "name": "IStudentAnswer",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 6986,
+                        "referencedDeclaration": 7103,
                         "src": "3795:14:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                          "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                           "typeString": "contract IStudentAnswer"
                         }
                       },
@@ -3883,7 +3892,7 @@
                           "name": "_msgSender",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11253,
+                          "referencedDeclaration": 11370,
                           "src": "3834:10:9",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -3917,10 +3926,10 @@
                       "name": "IStudentAnswer",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6986,
+                      "referencedDeclaration": 7103,
                       "src": "3819:14:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_contract$_IStudentAnswer_$6986_$",
+                        "typeIdentifier": "t_type$_t_contract$_IStudentAnswer_$7103_$",
                         "typeString": "type(contract IStudentAnswer)"
                       }
                     },
@@ -3935,7 +3944,7 @@
                     "src": "3819:28:9",
                     "tryCall": false,
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                      "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                       "typeString": "contract IStudentAnswer"
                     }
                   },
@@ -3971,7 +3980,7 @@
                               "referencedDeclaration": 3595,
                               "src": "3880:6:9",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                                 "typeString": "contract IStudentAnswer"
                               }
                             },
@@ -3982,7 +3991,7 @@
                             "lValueRequested": false,
                             "memberName": "getOwner",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 6980,
+                            "referencedDeclaration": 7097,
                             "src": "3880:15:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$__$returns$_t_address_$",
@@ -4105,7 +4114,7 @@
                       "referencedDeclaration": 3355,
                       "src": "3999:7:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                        "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                         "typeString": "contract IStudentAnswer"
                       }
                     },
@@ -4120,13 +4129,13 @@
                       "referencedDeclaration": 3595,
                       "src": "4009:6:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                        "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                         "typeString": "contract IStudentAnswer"
                       }
                     },
                     "src": "3999:16:9",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                      "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                       "typeString": "contract IStudentAnswer"
                     }
                   },
@@ -4260,7 +4269,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "4161:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -4325,7 +4334,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "4196:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -4358,7 +4367,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "4212:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -4470,7 +4479,7 @@
                         "referencedDeclaration": 3345,
                         "src": "4307:10:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       },
@@ -4481,7 +4490,7 @@
                       "lValueRequested": false,
                       "memberName": "viewMaterial",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 6887,
+                      "referencedDeclaration": 7004,
                       "src": "4307:23:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_pure$__$returns$_t_string_memory_ptr_$",
@@ -4568,7 +4577,7 @@
           },
           {
             "baseFunctions": [
-              7008
+              7125
             ],
             "body": {
               "id": 3682,
@@ -4679,7 +4688,7 @@
                             "name": "_msgSender",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11253,
+                            "referencedDeclaration": 11370,
                             "src": "4527:10:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -4715,7 +4724,7 @@
                               "referencedDeclaration": 3355,
                               "src": "4551:7:9",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                                 "typeString": "contract IStudentAnswer"
                               }
                             }
@@ -4723,7 +4732,7 @@
                           "expression": {
                             "argumentTypes": [
                               {
-                                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                                 "typeString": "contract IStudentAnswer"
                               }
                             ],
@@ -4877,7 +4886,7 @@
                               "referencedDeclaration": 3345,
                               "src": "4665:10:9",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                                "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                                 "typeString": "contract IClassroomChallenge"
                               }
                             },
@@ -4888,7 +4897,7 @@
                             "lValueRequested": false,
                             "memberName": "hintsCount",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 6873,
+                            "referencedDeclaration": 6990,
                             "src": "4665:21:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_pure$__$returns$_t_uint256_$",
@@ -5030,7 +5039,7 @@
                         "referencedDeclaration": 3345,
                         "src": "4772:10:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       },
@@ -5041,7 +5050,7 @@
                       "lValueRequested": false,
                       "memberName": "getHint",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 6882,
+                      "referencedDeclaration": 6999,
                       "src": "4772:18:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_view$_t_uint256_$_t_bytes32_$returns$_t_bytes32_$",
@@ -5320,7 +5329,7 @@
                         "referencedDeclaration": 3355,
                         "src": "4886:7:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                          "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                           "typeString": "contract IStudentAnswer"
                         }
                       },
@@ -5331,7 +5340,7 @@
                       "lValueRequested": false,
                       "memberName": "getSeed",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 6985,
+                      "referencedDeclaration": 7102,
                       "src": "4886:15:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_view$__$returns$_t_bytes32_$",
@@ -5417,7 +5426,7 @@
           },
           {
             "baseFunctions": [
-              7037
+              7154
             ],
             "body": {
               "id": 3735,
@@ -5711,7 +5720,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "5082:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -5750,7 +5759,7 @@
           },
           {
             "baseFunctions": [
-              7044
+              7161
             ],
             "body": {
               "id": 3762,
@@ -6001,7 +6010,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "5467:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -6097,7 +6106,7 @@
           },
           {
             "baseFunctions": [
-              7018
+              7135
             ],
             "body": {
               "id": 3776,
@@ -6274,7 +6283,7 @@
           },
           {
             "baseFunctions": [
-              7025
+              7142
             ],
             "body": {
               "id": 3813,
@@ -6305,7 +6314,7 @@
                             "name": "_msgSender",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11253,
+                            "referencedDeclaration": 11370,
                             "src": "5945:10:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -6562,7 +6571,7 @@
                             "referencedDeclaration": 3343,
                             "src": "6227:8:9",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           }
@@ -6570,7 +6579,7 @@
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           ],
@@ -6676,10 +6685,10 @@
                         "name": "TransferHelper",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12630,
+                        "referencedDeclaration": 12747,
                         "src": "6187:14:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12630_$",
+                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12747_$",
                           "typeString": "type(library TransferHelper)"
                         }
                       },
@@ -6690,7 +6699,7 @@
                       "lValueRequested": false,
                       "memberName": "safeTransferFrom",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 12604,
+                      "referencedDeclaration": 12721,
                       "src": "6187:31:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_address_$_t_address_$_t_uint256_$returns$__$",
@@ -6842,7 +6851,7 @@
         "id": 3323,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 11934,
+        "sourceUnit": 12051,
         "src": "27:51:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6853,7 +6862,7 @@
         "id": 3324,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 11531,
+        "sourceUnit": 11648,
         "src": "80:58:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6864,7 +6873,7 @@
         "id": 3325,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 11640,
+        "sourceUnit": 11757,
         "src": "140:52:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6875,7 +6884,7 @@
         "id": 3326,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 12012,
+        "sourceUnit": 12129,
         "src": "194:56:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6886,7 +6895,7 @@
         "id": 3327,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 12076,
+        "sourceUnit": 12193,
         "src": "252:51:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6897,7 +6906,7 @@
         "id": 3328,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 12631,
+        "sourceUnit": 12748,
         "src": "305:61:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6908,7 +6917,7 @@
         "id": 3329,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 7346,
+        "sourceUnit": 7463,
         "src": "368:37:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6919,7 +6928,7 @@
         "id": 3330,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6973,
+        "sourceUnit": 7090,
         "src": "407:34:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6930,7 +6939,7 @@
         "id": 3331,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6867,
+        "sourceUnit": 6984,
         "src": "443:36:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6941,7 +6950,7 @@
         "id": 3332,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 7046,
+        "sourceUnit": 7163,
         "src": "481:45:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6952,7 +6961,7 @@
         "id": 3333,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6987,
+        "sourceUnit": 7104,
         "src": "528:40:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6963,7 +6972,7 @@
         "id": 3334,
         "nodeType": "ImportDirective",
         "scope": 3816,
-        "sourceUnit": 6889,
+        "sourceUnit": 7006,
         "src": "570:45:9",
         "symbolAliases": [],
         "unitAlias": ""
@@ -6978,10 +6987,10 @@
               "id": 3335,
               "name": "Ownable",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11639,
+              "referencedDeclaration": 11756,
               "src": "652:7:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_Ownable_$11639",
+                "typeIdentifier": "t_contract$_Ownable_$11756",
                 "typeString": "contract Ownable"
               }
             },
@@ -6996,10 +7005,10 @@
               "id": 3337,
               "name": "IStudentApplication",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 7045,
+              "referencedDeclaration": 7162,
               "src": "661:19:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IStudentApplication_$7045",
+                "typeIdentifier": "t_contract$_IStudentApplication_$7162",
                 "typeString": "contract IStudentApplication"
               }
             },
@@ -7009,9 +7018,9 @@
           }
         ],
         "contractDependencies": [
-          7045,
-          11265,
-          11639
+          7162,
+          11382,
+          11756
         ],
         "contractKind": "contract",
         "documentation": null,
@@ -7019,9 +7028,9 @@
         "id": 3815,
         "linearizedBaseContracts": [
           3815,
-          7045,
-          11639,
-          11265
+          7162,
+          11756,
+          11382
         ],
         "name": "StudentApplication",
         "nodeType": "ContractDefinition",
@@ -7033,10 +7042,10 @@
               "id": 3339,
               "name": "SafeMath",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 11933,
+              "referencedDeclaration": 12050,
               "src": "694:8:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_SafeMath_$11933",
+                "typeIdentifier": "t_contract$_SafeMath_$12050",
                 "typeString": "library SafeMath"
               }
             },
@@ -7066,7 +7075,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IERC20_$12011",
+              "typeIdentifier": "t_contract$_IERC20_$12128",
               "typeString": "contract IERC20"
             },
             "typeName": {
@@ -7074,10 +7083,10 @@
               "id": 3342,
               "name": "IERC20",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 12011,
+              "referencedDeclaration": 12128,
               "src": "723:6:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC20_$12011",
+                "typeIdentifier": "t_contract$_IERC20_$12128",
                 "typeString": "contract IERC20"
               }
             },
@@ -7096,7 +7105,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+              "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
               "typeString": "contract IClassroomChallenge"
             },
             "typeName": {
@@ -7104,10 +7113,10 @@
               "id": 3344,
               "name": "IClassroomChallenge",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6888,
+              "referencedDeclaration": 7005,
               "src": "752:19:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                 "typeString": "contract IClassroomChallenge"
               }
             },
@@ -7177,7 +7186,7 @@
             "stateVariable": true,
             "storageLocation": "default",
             "typeDescriptions": {
-              "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+              "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
               "typeString": "contract IStudentAnswer"
             },
             "typeName": {
@@ -7185,10 +7194,10 @@
               "id": 3354,
               "name": "IStudentAnswer",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 6986,
+              "referencedDeclaration": 7103,
               "src": "874:14:9",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                 "typeString": "contract IStudentAnswer"
               }
             },
@@ -7651,7 +7660,7 @@
                       "referencedDeclaration": 3343,
                       "src": "1502:8:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20_$12011",
+                        "typeIdentifier": "t_contract$_IERC20_$12128",
                         "typeString": "contract IERC20"
                       }
                     },
@@ -7685,10 +7694,10 @@
                         "name": "IERC20",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12011,
+                        "referencedDeclaration": 12128,
                         "src": "1513:6:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IERC20_$12011_$",
+                          "typeIdentifier": "t_type$_t_contract$_IERC20_$12128_$",
                           "typeString": "type(contract IERC20)"
                         }
                       },
@@ -7703,13 +7712,13 @@
                       "src": "1513:18:9",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IERC20_$12011",
+                        "typeIdentifier": "t_contract$_IERC20_$12128",
                         "typeString": "contract IERC20"
                       }
                     },
                     "src": "1502:29:9",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IERC20_$12011",
+                      "typeIdentifier": "t_contract$_IERC20_$12128",
                       "typeString": "contract IERC20"
                     }
                   },
@@ -7780,7 +7789,7 @@
                       "referencedDeclaration": 3345,
                       "src": "1565:10:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                        "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                         "typeString": "contract IClassroomChallenge"
                       }
                     },
@@ -7814,10 +7823,10 @@
                         "name": "IClassroomChallenge",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 6888,
+                        "referencedDeclaration": 7005,
                         "src": "1578:19:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_IClassroomChallenge_$6888_$",
+                          "typeIdentifier": "t_type$_t_contract$_IClassroomChallenge_$7005_$",
                           "typeString": "type(contract IClassroomChallenge)"
                         }
                       },
@@ -7832,13 +7841,13 @@
                       "src": "1578:37:9",
                       "tryCall": false,
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                        "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                         "typeString": "contract IClassroomChallenge"
                       }
                     },
                     "src": "1565:50:9",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                      "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                       "typeString": "contract IClassroomChallenge"
                     }
                   },
@@ -7902,10 +7911,10 @@
                             "name": "IClassroom",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 6866,
+                            "referencedDeclaration": 6983,
                             "src": "1640:10:9",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_type$_t_contract$_IClassroom_$6866_$",
+                              "typeIdentifier": "t_type$_t_contract$_IClassroom_$6983_$",
                               "typeString": "type(contract IClassroom)"
                             }
                           },
@@ -7920,7 +7929,7 @@
                           "src": "1640:29:9",
                           "tryCall": false,
                           "typeDescriptions": {
-                            "typeIdentifier": "t_contract$_IClassroom_$6866",
+                            "typeIdentifier": "t_contract$_IClassroom_$6983",
                             "typeString": "contract IClassroom"
                           }
                         },
@@ -7931,7 +7940,7 @@
                         "lValueRequested": false,
                         "memberName": "entryPrice",
                         "nodeType": "MemberAccess",
-                        "referencedDeclaration": 6852,
+                        "referencedDeclaration": 6969,
                         "src": "1640:40:9",
                         "typeDescriptions": {
                           "typeIdentifier": "t_function_external_view$__$returns$_t_uint256_$",
@@ -8138,7 +8147,7 @@
           },
           {
             "baseFunctions": [
-              7001
+              7118
             ],
             "body": {
               "id": 3436,
@@ -8181,7 +8190,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "1745:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -8250,7 +8259,7 @@
           },
           {
             "baseFunctions": [
-              7013
+              7130
             ],
             "body": {
               "id": 3462,
@@ -8292,7 +8301,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "1922:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -8357,7 +8366,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "1957:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -8390,7 +8399,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "1973:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -8619,7 +8628,7 @@
           },
           {
             "baseFunctions": [
-              6993
+              7110
             ],
             "body": {
               "id": 3485,
@@ -8661,7 +8670,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2204:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -8726,7 +8735,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2239:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -8759,7 +8768,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "2255:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -8979,7 +8988,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2468:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -9044,7 +9053,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "2503:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -9077,7 +9086,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "2519:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -9187,7 +9196,7 @@
                         "referencedDeclaration": 3345,
                         "src": "2622:10:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       }
@@ -9195,7 +9204,7 @@
                     "expression": {
                       "argumentTypes": [
                         {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       ],
@@ -9302,7 +9311,7 @@
           },
           {
             "baseFunctions": [
-              7028
+              7145
             ],
             "body": {
               "id": 3541,
@@ -9453,7 +9462,7 @@
                             "referencedDeclaration": 3343,
                             "src": "2901:8:9",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           }
@@ -9461,7 +9470,7 @@
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           ],
@@ -9583,10 +9592,10 @@
                         "name": "TransferHelper",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12630,
+                        "referencedDeclaration": 12747,
                         "src": "2847:14:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12630_$",
+                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12747_$",
                           "typeString": "type(library TransferHelper)"
                         }
                       },
@@ -9597,7 +9606,7 @@
                       "lValueRequested": false,
                       "memberName": "safeTransferFrom",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 12604,
+                      "referencedDeclaration": 12721,
                       "src": "2847:31:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_address_$_t_address_$_t_uint256_$returns$__$",
@@ -9721,7 +9730,7 @@
           },
           {
             "baseFunctions": [
-              7031
+              7148
             ],
             "body": {
               "id": 3561,
@@ -9935,7 +9944,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "3109:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -9974,7 +9983,7 @@
           },
           {
             "baseFunctions": [
-              7034
+              7151
             ],
             "body": {
               "id": 3581,
@@ -10188,7 +10197,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "3367:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -10227,7 +10236,7 @@
           },
           {
             "baseFunctions": [
-              6996
+              7113
             ],
             "body": {
               "id": 3618,
@@ -10379,7 +10388,7 @@
                       "stateVariable": false,
                       "storageLocation": "default",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                        "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                         "typeString": "contract IStudentAnswer"
                       },
                       "typeName": {
@@ -10387,10 +10396,10 @@
                         "id": 3594,
                         "name": "IStudentAnswer",
                         "nodeType": "UserDefinedTypeName",
-                        "referencedDeclaration": 6986,
+                        "referencedDeclaration": 7103,
                         "src": "3795:14:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                          "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                           "typeString": "contract IStudentAnswer"
                         }
                       },
@@ -10411,7 +10420,7 @@
                           "name": "_msgSender",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 11253,
+                          "referencedDeclaration": 11370,
                           "src": "3834:10:9",
                           "typeDescriptions": {
                             "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -10445,10 +10454,10 @@
                       "name": "IStudentAnswer",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 6986,
+                      "referencedDeclaration": 7103,
                       "src": "3819:14:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_type$_t_contract$_IStudentAnswer_$6986_$",
+                        "typeIdentifier": "t_type$_t_contract$_IStudentAnswer_$7103_$",
                         "typeString": "type(contract IStudentAnswer)"
                       }
                     },
@@ -10463,7 +10472,7 @@
                     "src": "3819:28:9",
                     "tryCall": false,
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                      "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                       "typeString": "contract IStudentAnswer"
                     }
                   },
@@ -10499,7 +10508,7 @@
                               "referencedDeclaration": 3595,
                               "src": "3880:6:9",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                                 "typeString": "contract IStudentAnswer"
                               }
                             },
@@ -10510,7 +10519,7 @@
                             "lValueRequested": false,
                             "memberName": "getOwner",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 6980,
+                            "referencedDeclaration": 7097,
                             "src": "3880:15:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_view$__$returns$_t_address_$",
@@ -10633,7 +10642,7 @@
                       "referencedDeclaration": 3355,
                       "src": "3999:7:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                        "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                         "typeString": "contract IStudentAnswer"
                       }
                     },
@@ -10648,13 +10657,13 @@
                       "referencedDeclaration": 3595,
                       "src": "4009:6:9",
                       "typeDescriptions": {
-                        "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                        "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                         "typeString": "contract IStudentAnswer"
                       }
                     },
                     "src": "3999:16:9",
                     "typeDescriptions": {
-                      "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                      "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                       "typeString": "contract IStudentAnswer"
                     }
                   },
@@ -10788,7 +10797,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "4161:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -10853,7 +10862,7 @@
                               "name": "_msgSender",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11253,
+                              "referencedDeclaration": 11370,
                               "src": "4196:10:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -10886,7 +10895,7 @@
                               "name": "owner",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 11575,
+                              "referencedDeclaration": 11692,
                               "src": "4212:5:9",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_function_internal_view$__$returns$_t_address_$",
@@ -10998,7 +11007,7 @@
                         "referencedDeclaration": 3345,
                         "src": "4307:10:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       },
@@ -11009,7 +11018,7 @@
                       "lValueRequested": false,
                       "memberName": "viewMaterial",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 6887,
+                      "referencedDeclaration": 7004,
                       "src": "4307:23:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_pure$__$returns$_t_string_memory_ptr_$",
@@ -11096,7 +11105,7 @@
           },
           {
             "baseFunctions": [
-              7008
+              7125
             ],
             "body": {
               "id": 3682,
@@ -11207,7 +11216,7 @@
                             "name": "_msgSender",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11253,
+                            "referencedDeclaration": 11370,
                             "src": "4527:10:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -11243,7 +11252,7 @@
                               "referencedDeclaration": 3355,
                               "src": "4551:7:9",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                                 "typeString": "contract IStudentAnswer"
                               }
                             }
@@ -11251,7 +11260,7 @@
                           "expression": {
                             "argumentTypes": [
                               {
-                                "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                                "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                                 "typeString": "contract IStudentAnswer"
                               }
                             ],
@@ -11405,7 +11414,7 @@
                               "referencedDeclaration": 3345,
                               "src": "4665:10:9",
                               "typeDescriptions": {
-                                "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                                "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                                 "typeString": "contract IClassroomChallenge"
                               }
                             },
@@ -11416,7 +11425,7 @@
                             "lValueRequested": false,
                             "memberName": "hintsCount",
                             "nodeType": "MemberAccess",
-                            "referencedDeclaration": 6873,
+                            "referencedDeclaration": 6990,
                             "src": "4665:21:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_external_pure$__$returns$_t_uint256_$",
@@ -11558,7 +11567,7 @@
                         "referencedDeclaration": 3345,
                         "src": "4772:10:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IClassroomChallenge_$6888",
+                          "typeIdentifier": "t_contract$_IClassroomChallenge_$7005",
                           "typeString": "contract IClassroomChallenge"
                         }
                       },
@@ -11569,7 +11578,7 @@
                       "lValueRequested": false,
                       "memberName": "getHint",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 6882,
+                      "referencedDeclaration": 6999,
                       "src": "4772:18:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_view$_t_uint256_$_t_bytes32_$returns$_t_bytes32_$",
@@ -11848,7 +11857,7 @@
                         "referencedDeclaration": 3355,
                         "src": "4886:7:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_contract$_IStudentAnswer_$6986",
+                          "typeIdentifier": "t_contract$_IStudentAnswer_$7103",
                           "typeString": "contract IStudentAnswer"
                         }
                       },
@@ -11859,7 +11868,7 @@
                       "lValueRequested": false,
                       "memberName": "getSeed",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 6985,
+                      "referencedDeclaration": 7102,
                       "src": "4886:15:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_external_view$__$returns$_t_bytes32_$",
@@ -11945,7 +11954,7 @@
           },
           {
             "baseFunctions": [
-              7037
+              7154
             ],
             "body": {
               "id": 3735,
@@ -12239,7 +12248,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "5082:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -12278,7 +12287,7 @@
           },
           {
             "baseFunctions": [
-              7044
+              7161
             ],
             "body": {
               "id": 3762,
@@ -12529,7 +12538,7 @@
                   "name": "onlyOwner",
                   "nodeType": "Identifier",
                   "overloadedDeclarations": [],
-                  "referencedDeclaration": 11588,
+                  "referencedDeclaration": 11705,
                   "src": "5467:9:9",
                   "typeDescriptions": {
                     "typeIdentifier": "t_modifier$__$",
@@ -12625,7 +12634,7 @@
           },
           {
             "baseFunctions": [
-              7018
+              7135
             ],
             "body": {
               "id": 3776,
@@ -12802,7 +12811,7 @@
           },
           {
             "baseFunctions": [
-              7025
+              7142
             ],
             "body": {
               "id": 3813,
@@ -12833,7 +12842,7 @@
                             "name": "_msgSender",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 11253,
+                            "referencedDeclaration": 11370,
                             "src": "5945:10:9",
                             "typeDescriptions": {
                               "typeIdentifier": "t_function_internal_view$__$returns$_t_address_payable_$",
@@ -13090,7 +13099,7 @@
                             "referencedDeclaration": 3343,
                             "src": "6227:8:9",
                             "typeDescriptions": {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           }
@@ -13098,7 +13107,7 @@
                         "expression": {
                           "argumentTypes": [
                             {
-                              "typeIdentifier": "t_contract$_IERC20_$12011",
+                              "typeIdentifier": "t_contract$_IERC20_$12128",
                               "typeString": "contract IERC20"
                             }
                           ],
@@ -13204,10 +13213,10 @@
                         "name": "TransferHelper",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 12630,
+                        "referencedDeclaration": 12747,
                         "src": "6187:14:9",
                         "typeDescriptions": {
-                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12630_$",
+                          "typeIdentifier": "t_type$_t_contract$_TransferHelper_$12747_$",
                           "typeString": "type(library TransferHelper)"
                         }
                       },
@@ -13218,7 +13227,7 @@
                       "lValueRequested": false,
                       "memberName": "safeTransferFrom",
                       "nodeType": "MemberAccess",
-                      "referencedDeclaration": 12604,
+                      "referencedDeclaration": 12721,
                       "src": "6187:31:9",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_internal_nonpayable$_t_address_$_t_address_$_t_address_$_t_uint256_$returns$__$",
@@ -13347,9 +13356,37 @@
     "name": "solc",
     "version": "0.6.6+commit.6c089d02.Emscripten.clang"
   },
-  "networks": {},
+  "networks": {
+    "5777": {
+      "events": {
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "internalType": "address",
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0xB959A5B2834a795bAf6F44cd3EA832858D99e12a",
+      "transactionHash": "0x8596024e6bc6f8ded383ff90fb9c3f38da9ebe73323597be536ce18c92f8f4d9"
+    }
+  },
   "schemaVersion": "3.1.0",
-  "updatedAt": "2020-05-07T18:05:29.397Z",
+  "updatedAt": "2020-05-08T00:10:27.023Z",
+  "networkType": "ethereum",
   "devdoc": {
     "methods": {
       "owner()": {
