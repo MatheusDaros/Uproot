@@ -45,6 +45,36 @@ describe('University smart contract', () => {
             expect(await contract.name()).to.equal(name);
         });
 
+        it("must save owner at deploy", async() => {
+            const address = ownerAddress;
+            expect(await contract.owner(address)).to.equal(ownerAddress);
+        });
+
+        it("must save DEFAULT ADMIN ROLE at deploy", async() => {
+            const role = ethers.utils.formatBytes32String("DEFAULT_ADMIN_ROLE");
+            const address = ownerAddress;
+            expect(await contract.hasRole(role, address)).to.equal(ownerAddress);
+        });
+
+        it("must save READ STUDENT LIST ROLE at deploy", async() => {
+            const role = ethers.utils.formatBytes32String("READ_STUDENT_LIST_ROLE");
+            const address = ownerAddress;
+            expect(await contract.hasRole(role, address)).to.equal(ownerAddress);
+        });
+
+    });
+
+    describe("Change University Name", function() {
+
+        it('Update University Name success', async() => {
+            const newName = ethers.utils.formatBytes32String("Nova Tapioca");
+            await contract.changeName(newName);
+            expect(await contract.name()).to.equal(newName);
+        });
+    });
+
+    describe("Student Register", function() {
+
         it('Student register success', async() => {
             const sName = ethers.utils.formatBytes32String("Flavio Neto");
             const studentContract = await contract.connect(student1).studentSelfRegister(sName);
