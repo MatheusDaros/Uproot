@@ -5,11 +5,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
-import "./interface/Aave/aToken.sol";
-import "./interface/Aave/ILendingPool.sol";
-import "./interface/Aave/ILendingPoolAddressesProvider.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./gambi/IRelayHub.sol";
@@ -18,16 +14,13 @@ import "./interface/IStudent.sol";
 import "./interface/IStudentApplication.sol";
 import "./interface/IClassroomFactory.sol";
 import "./interface/IStudentFactory.sol";
-import "./interface/IStudentApplicationFactory.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IUniversityFund.sol";
 import "./interface/IGrantsManager.sol";
-import "./interface/ICompound.sol";
 import "./MyUtils.sol";
 
 //TODO: Natspec Document ENVERYTHING
 //TODO: Sort function order from all contracts
-//TODO: Divide University in smaller contracts
 
 contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     using SafeMath for uint256;
@@ -71,9 +64,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     // Parameter: GSN funds to give students
     uint256 _studentGSNDeposit;
     // List of every registered classroom
-    address[] public _classList;
-    // List of every student
-    address[] _students;
+    address[] _classList;
     // Mapping of each student's applications
     mapping(address => address[]) _studentApplicationsMapping;
     // Mapping of every donor and donations
@@ -99,8 +90,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     IRelayHub public relayHub;
 
     //Factory
-    IClassroomFactory _classroomFactory;
-    IStudentFactory _studentFactory;
+    address _classroomFactory;
+    address _studentFactory;
     address _studentApplicationFactoryAddress;
 
     /// @notice Constructor setup the basic variables
@@ -132,8 +123,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         daiToken = daiAddress;
         cDAI = compoundDai;
         relayHub = IRelayHub(relayHubAddress);
-        _classroomFactory = IClassroomFactory(classroomFactoryAddress);
-        _studentFactory = IStudentFactory(studentFactoryAddress);
+        _classroomFactory = classroomFactoryAddress;
+        _studentFactory = studentFactoryAddress;
         _studentApplicationFactoryAddress = studentApplicationFactoryAddress;
     }
 
@@ -269,10 +260,9 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
         _studentApplicationsMapping[caller].push(address(0));
-        address student = _studentFactory.newStudent(sName, address(this));
+        address student = IStudentFactory(_studentFactory).newStudent(sName, address(this));
         IStudent(student).transferOwnershipStudent(caller);
         address studentAddr = address(student);
-        _students.push(studentAddr);
         grantRole(STUDENT_IDENTITY_ROLE, studentAddr);
         return address(studentAddr);
     }
@@ -324,7 +314,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         uint256 duration,
         address challengeAddress
     ) internal returns (address) {
-        address classroom = _classroomFactory.newClassroom(
+        address classroom = IClassroomFactory(_classroomFactory).newClassroom(
             cName,
             cCut,
             cPCut,

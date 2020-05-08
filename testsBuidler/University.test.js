@@ -22,6 +22,7 @@ const classroomFactoryAddress = getAddress('../build/contracts/ClassroomFactory.
 const studentFactoryAddress = getAddress('../build/contracts/StudentFactory.json');
 const studentApplicationFactoryAddress = getAddress('../build/contracts/StudentApplicationFactory.json');
 const daiAddress = getAddress('../build/contracts/ERC20.json');
+const cDaiAddress = getAddress('../build/contracts/ERC20.json');
 
 
 describe('University smart contract', () => {
@@ -29,7 +30,7 @@ describe('University smart contract', () => {
     const [ownerAddress] = provider.getWallets();
 
     async function deployBefore() {
-        const contract = await deployContract(ownerAddress, University, [name, cut, studentGSNDeposit, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress, daiAddress]);
+        const contract = await deployContract(ownerAddress, University, [name, cut, studentGSNDeposit, daiAddress, cDaiAddress, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress]);
         return contract;
     }
 
