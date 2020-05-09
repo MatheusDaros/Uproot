@@ -248,29 +248,22 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// @param sName Name of the Student
     /// @return the smart contract address for this Student instance in this University
     function studentSelfRegister(bytes32 sName) public returns (address) {
-        console.log("start");
         return _newStudent(sName, _msgSender());
     }
 
     function _newStudent(bytes32 sName, address caller)
         internal
-        returns (address)
-    {
+        returns (address) {
         require(
             _studentApplicationsMapping[_msgSenderGSN()].length == 0,
             "University: student already registered"
         );
-        console.log("step1");
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
         _studentApplicationsMapping[caller].push(address(0));
-        console.log("step2");
         address student = IStudentFactory(_studentFactory).newStudent(sName, address(this));
         IStudent(student).transferOwnershipStudent(caller);
-        console.log("step3");
-        address studentAddr = address(student);
-        grantRole(STUDENT_IDENTITY_ROLE, studentAddr);
-        console.log("step4");
-        return address(studentAddr);
+        _setupRole(STUDENT_IDENTITY_ROLE, student);
+        return student;
     }
 
     /// @notice Register function where an Admin can can create an instance of a Classroom in this University
@@ -336,8 +329,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IClassroom(classroom).transferOwnershipClassroom(owner);
         address classroomAddr = address(classroom);
         _classList.push(classroomAddr);
-        grantRole(READ_STUDENT_LIST_ROLE, classroomAddr);
-        grantRole(CLASSROOM_PROFESSOR_ROLE, classroomAddr);
+        _setupRole(READ_STUDENT_LIST_ROLE, classroomAddr);
+        _setupRole(CLASSROOM_PROFESSOR_ROLE, classroomAddr);
         emit LogNewClassroom(cName, classroomAddr);
         return classroomAddr;
     }
