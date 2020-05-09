@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@nomiclabs/buidler/console.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./interface/IStudent.sol";
@@ -87,8 +88,9 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
             _university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
-        grantRole(READ_SCORE_ROLE, classroomAddress);
+        console.log("apply");
         IClassroom(classroomAddress).studentApply();
+        _setupRole(READ_SCORE_ROLE, classroomAddress);
         _classroomAddress.push(classroomAddress);
     }
 

@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.6/interfaces/LinkTokenInterface.sol";
-//import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "@nomiclabs/buidler/console.sol";
 import "./interface/Aave/aToken.sol";
 import "./interface/Aave/ILendingPool.sol";
 import "./interface/Aave/ILendingPoolAddressesProvider.sol";
@@ -59,9 +60,9 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address _linkToken;
 
     //Uniswap Config
-    //address _uniswapDAI;
-    //address _uniswapLINK;
-    //IUniswapV2Router01 _uniswapRouter;
+    address _uniswapDAI;
+    address _uniswapLINK;
+    IUniswapV2Router01 _uniswapRouter;
 
     //Aave Config
     ILendingPoolAddressesProvider _aaveProvider;
@@ -133,15 +134,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _generateSeed();
     }
 
-    // function configureUniswap(
-    //     address uniswapDAI,
-    //     address uniswapLINK,
-    //     address uniswapRouter
-    // ) public onlyOwner {
-    //     _uniswapDAI = uniswapDAI;
-    //     _uniswapLINK = uniswapLINK;
-    //     _uniswapRouter = IUniswapV2Router01(uniswapRouter);
-    // }
+    function configureUniswap(
+        address uniswapDAI,
+        address uniswapLINK,
+        address uniswapRouter
+    ) public onlyOwner {
+        _uniswapDAI = uniswapDAI;
+        _uniswapLINK = uniswapLINK;
+        _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+    }
 
     function configureAave(
         address lendingPoolAddressesProvider
@@ -225,10 +226,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             _oracleRandom != address(0),
             "Classroom: setup oracles first"
         );
-        // require(
-        //     _uniswapDAI != address(0),
-        //     "Classroom: setup Uniswap first"
-        // );
+        require(
+            _uniswapDAI != address(0),
+            "Classroom: setup Uniswap first"
+        );
         require(
             _aaveLendingPoolCore != address(0),
             "Classroom: setup Aave first"
@@ -279,6 +280,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function studentApply() public override {
+        console.logAddress(_msgSender());
+        console.logAddress(owner());
         require(
             _msgSender() != owner(),
             "Classroom: professor can't be its own student"
@@ -526,35 +529,35 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         );
     }
 
-    // function swapDAI_LINK(uint256 amount, uint256 deadline) public onlyOwner {
-    //     require(
-    //         _uniswapLINK != address(0),
-    //         "University: setup uniswap first"
-    //     );
-    //     swapBlind(_uniswapDAI, _uniswapLINK, amount, deadline);
-    // }
+    function swapDAI_LINK(uint256 amount, uint256 deadline) public onlyOwner {
+        require(
+            _uniswapLINK != address(0),
+            "University: setup uniswap first"
+        );
+        swapBlind(_uniswapDAI, _uniswapLINK, amount, deadline);
+    }
 
-    // function swapLINK_DAI(uint256 amount, uint256 deadline) public onlyOwner {
-    //     require(
-    //         _uniswapLINK != address(0),
-    //         "University: setup uniswap first"
-    //     );
-    //     swapBlind(_uniswapLINK, _uniswapDAI, amount, deadline);
-    // }
+    function swapLINK_DAI(uint256 amount, uint256 deadline) public onlyOwner {
+        require(
+            _uniswapLINK != address(0),
+            "University: setup uniswap first"
+        );
+        swapBlind(_uniswapLINK, _uniswapDAI, amount, deadline);
+    }
 
-    // function swapBlind(address tokenA, address tokenB, uint256 amount, uint256 deadline) internal {
-    //     TransferHelper.safeApprove(tokenA, address(_uniswapRouter), amount);
-    //     address[] memory path = new address[](2);
-    //     path[0] = tokenA;
-    //     path[1] = tokenB;
-    //     _uniswapRouter.swapExactTokensForTokens(
-    //         amount,
-    //         0,
-    //         path,
-    //         address(this),
-    //         deadline
-    //     );
-    // }
+    function swapBlind(address tokenA, address tokenB, uint256 amount, uint256 deadline) internal {
+        TransferHelper.safeApprove(tokenA, address(_uniswapRouter), amount);
+        address[] memory path = new address[](2);
+        path[0] = tokenA;
+        path[1] = tokenB;
+        _uniswapRouter.swapExactTokensForTokens(
+            amount,
+            0,
+            path,
+            address(this),
+            deadline
+        );
+    }
 
     function _generateSeed() internal {
         Chainlink.Request memory req = buildChainlinkRequest(
