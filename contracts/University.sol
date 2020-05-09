@@ -121,6 +121,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         _studentGSNDeposit = studentGSNDeposit;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
+        grantRole(CLASSLIST_ADMIN_ROLE, _msgSender());
         daiToken = daiAddress;
         cDAI = compoundDai;
         relayHub = IRelayHub(relayHubAddress);
@@ -141,6 +142,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     /// @notice Records the name and address of every new classroom created
     event LogNewClassroom(bytes32, address);
+    /// @notice Records the name and address of every new student created
+    event LogNewStudent(bytes32, address);
     /// @notice Records the name changes of this University
     event LogChangeName(bytes32);
     /// @notice Records the changes in the Cut parameter
@@ -237,18 +240,15 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// @notice Self-register function where an address can create an instance of a Student in this University
     /// @dev This GSN implementation is buggy
     /// @param sName Name of the Student
-    /// @return the smart contract address for this Student instance in this University
-    function studentSelfRegisterGSN(bytes32 sName) public returns (address) {
+    function studentSelfRegisterGSN(bytes32 sName) public {
         address student = _newStudent(sName, _msgSenderGSN());
         relayHub.depositFor{value:_studentGSNDeposit}(student);
-        return student;
     }
 
     /// @notice Self-register function where an address can create an instance of a Student in this University
     /// @param sName Name of the Student
-    /// @return the smart contract address for this Student instance in this University
-    function studentSelfRegister(bytes32 sName) public returns (address) {
-        return _newStudent(sName, _msgSender());
+    function studentSelfRegister(bytes32 sName) public {
+        _newStudent(sName, _msgSender());
     }
 
     function _newStudent(bytes32 sName, address caller)
@@ -263,6 +263,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         address student = IStudentFactory(_studentFactory).newStudent(sName, address(this));
         IStudent(student).transferOwnershipStudent(caller);
         _setupRole(STUDENT_IDENTITY_ROLE, student);
+        emit LogNewStudent(name, student);
         return student;
     }
 

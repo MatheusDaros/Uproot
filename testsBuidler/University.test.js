@@ -7,14 +7,20 @@ const Build_StudentFactory = require("../build/contracts/StudentFactory.json");
 const Build_Student = require("../build/contracts/Student.json");
 const Build_StudentApplicationFactory = require("../build/contracts/studentApplicationFactory.json");
 const Build_University = require("../build/contracts/University.json");
+const Build_ExampleChallenge = require("../build/contracts/ExampleChallenge.json");
+const Build_ExampleFundsManager = require("../build/contracts/ExampleFundsManager.json");
+const Build_ExampleGrantsManager = require("../build/contracts/ExampleGrantsManager.json");
+const Build_ExampleStudentAnswer = require("../build/contracts/ExampleStudentAnswer.json");
+const Build_ExampleWrongStudentAnswer = require("../build/contracts/ExampleWrongStudentAnswer.json");
+const Build_UniversityFund = require("../build/contracts/UniversityFund.json");
 const {
     solidity,
-    MockProvider,
     deployContract,
     loadFixture,
 } = require("ethereum-waffle");
 const { use, expect } = require("chai");
 const { ethers } = require("@nomiclabs/buidler");
+
 
 use(solidity);
 require("dotenv").config();
@@ -23,10 +29,20 @@ require("dotenv").config();
 const name = ethers.utils.formatBytes32String(process.env.UNIVERSITY_NAME);
 const cut = process.env.UNIVERSITY_CUT;
 const studentGSNDeposit = process.env.UNIVERSITY_GSNDEPOSIT;
+
+//Student Params
 const sName = ethers.utils.formatBytes32String("Flavio Neto");
 
+//Classroom Params
+const cName = ethers.utils.formatBytes32String("Tapiocaria");
+const cCut = 0.25 * 1e6;
+const cPCut = 0.5 * 1e6;
+const minScore = 0;
+const entryPrice = ethers.utils.parseEther("200");
+const duration = 60 * 60 * 24 * 30;
+
 describe("University smart contract", function() {
-    async function fixture(provider, [ownerAddress, student1, student2]) {
+    async function fixture(provider, [ownerAddress, student1, student2, professor1, professor2, grantsManager, whitelistedProvider, donor1, donor2, alice, bob]) {
         const DAI_ERC20 = await deployContract(ownerAddress, Build_DAI_ERC20, [
             "DAI",
             "DAI",
@@ -68,6 +84,32 @@ describe("University smart contract", function() {
             provider
         );
         await Student.deployed();
+        const ExampleChallenge = await deployContract(
+            professor1,
+            Build_ExampleChallenge
+        );
+        const ClassroomAddress_ = await University.connect(ownerAddress).newClassRoom(professor1.address,
+            cName,
+            cCut,
+            cPCut,
+            minScore,
+            entryPrice,
+            duration,
+            ExampleChallenge.address);
+        await ClassroomAddress_.wait();
+        let role2 = ethers.utils.solidityKeccak256(["string"], ["CLASSROOM_PROFESSOR_ROLE"]);
+        let classroomCount = await University.getRoleMemberCount(role2);
+        let ClassroomAddress = await University.getRoleMember(role2, classroomCount - 1);
+        const Classroom = new ethers.Contract(
+            ClassroomAddress,
+            Build_Classroom.abi,
+            provider
+        );
+        await Classroom.deployed();
+        const ExampleGrantsManager = await deployContract(
+            grantsManager,
+            Build_ExampleGrantsManager, [University.address]
+        );
         return {
             DAI_ERC20,
             DAI_CERC20,
@@ -77,60 +119,42 @@ describe("University smart contract", function() {
             StudentApplicationFactory,
             University,
             Student,
+            ExampleChallenge,
+            Classroom,
+            ExampleGrantsManager,
             ownerAddress,
             student1,
-            student2
+            student2,
+            professor1,
+            professor2,
+            whitelistedProvider,
+            donor1,
+            donor2,
+            alice,
+            bob
         };
     }
 
     describe("Deployment", function() {
         it("must register name at deploy", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
                 University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
             } = await loadFixture(fixture);
             expect(await University.name()).to.equal(name);
         });
 
         it("must save owner at deploy", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
                 University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
+                ownerAddress
             } = await loadFixture(fixture);
             expect(await University.owner()).to.equal(ownerAddress.address);
         });
 
         it("must save DEFAULT ADMIN ROLE at deploy", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
                 University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
+                ownerAddress
             } = await loadFixture(fixture);
             const DEFAULT_ADMIN_ROLE =
                 "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -141,17 +165,8 @@ describe("University smart contract", function() {
 
         it("must save READ STUDENT LIST ROLE at deploy", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
                 University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
+                ownerAddress
             } = await loadFixture(fixture);
             const ROLE = ethers.utils.solidityKeccak256(
                 ["string"], ["READ_STUDENT_LIST_ROLE"]
@@ -165,17 +180,7 @@ describe("University smart contract", function() {
     describe("Change University Name", function() {
         it("Update University Name success", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
-                University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
+                University
             } = await loadFixture(fixture);
             const newName = ethers.utils.formatBytes32String("Nova Tapioca");
             await University.changeName(newName);
@@ -186,36 +191,41 @@ describe("University smart contract", function() {
     describe("Student Register", function() {
         it("Student register success", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
-                University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
+                Student
             } = await loadFixture(fixture);
             expect(await Student.name()).to.equal(sName);
         });
         it("Student register revert", async function() {
             const {
-                DAI_ERC20,
-                DAI_CERC20,
-                RelayHub,
-                ClassroomFactory,
-                StudentFactory,
-                StudentApplicationFactory,
                 University,
-                Student,
-                ownerAddress,
-                student1,
-                student2
+                student1
             } = await loadFixture(fixture);
             const sName = ethers.utils.formatBytes32String("Flavio Clone");
             await expect(University.connect(student1).studentSelfRegister(sName)).to.be.reverted;
+        });
+    });
+
+    describe("Classroom Register", function() {
+        it("Student register success", async function() {
+            const {
+                Classroom
+            } = await loadFixture(fixture);
+            expect(await Classroom.name()).to.equal(cName);
+        });
+        it("Classroom register revert", async function() {
+            const {
+                University,
+                ExampleChallenge,
+                student2
+            } = await loadFixture(fixture);
+            await expect(University.connect(student2).newClassRoom(student2.address,
+                cName,
+                cCut,
+                cPCut,
+                minScore,
+                entryPrice,
+                duration,
+                ExampleChallenge.address)).to.be.reverted;
         });
     });
 });
