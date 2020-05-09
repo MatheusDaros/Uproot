@@ -13,17 +13,24 @@ const Build_ExampleGrantsManager = require("../build/contracts/ExampleGrantsMana
 const Build_ExampleStudentAnswer = require("../build/contracts/ExampleStudentAnswer.json");
 const Build_ExampleWrongStudentAnswer = require("../build/contracts/ExampleWrongStudentAnswer.json");
 const Build_UniversityFund = require("../build/contracts/UniversityFund.json");
-const { solidity, deployContract, loadFixture } = require("ethereum-waffle");
-const { use, expect } = require("chai");
+const { expect } = require("chai");
 const { ethers } = require("@nomiclabs/buidler");
 
-use(solidity);
-require("dotenv").config();
+async function deployContract(signer, factory, params = []) {
+    const MyContract = await ethers.getContractFactory(
+        factory.abi,
+        factory.bytecode,
+        signer
+    );
+    const myContract = await MyContract.deploy(...params);
+    await myContract.deployed();
+    return myContract;
+}
 
 //University Params
-const name = ethers.utils.formatBytes32String(process.env.UNIVERSITY_NAME);
-const cut = process.env.UNIVERSITY_CUT;
-const studentGSNDeposit = process.env.UNIVERSITY_GSNDEPOSIT;
+const name = ethers.utils.formatBytes32String("Tapioca University");
+const cut = 0.25 * 1e6;
+const studentGSNDeposit = ethers.utils.parseEther("0.001");
 
 //Student Params
 const sName = ethers.utils.formatBytes32String("Flavio Neto");
@@ -37,8 +44,34 @@ const entryPrice = ethers.utils.parseEther("200");
 const duration = 60 * 60 * 24 * 30;
 
 describe("Class process Checks", function() {
-    async function fixture(
-        provider, [
+    var DAI_ERC20,
+        DAI_CERC20,
+        RelayHub,
+        ClassroomFactory,
+        StudentFactory,
+        StudentApplicationFactory,
+        University,
+        Student1,
+        Student2,
+        Student3,
+        Student4,
+        Student5,
+        StudentT1,
+        ExampleChallenge,
+        Classroom,
+        ownerAddress,
+        student1,
+        student2,
+        student3,
+        student4,
+        student5,
+        studentFake,
+        teacher1,
+        teacher2;
+
+    var checkpointId;
+    before(async function() {
+        [
             ownerAddress,
             student1,
             student2,
@@ -48,44 +81,39 @@ describe("Class process Checks", function() {
             studentFake,
             teacher1,
             teacher2,
-        ]
-    ) {
-        const DAI_ERC20 = await deployContract(ownerAddress, Build_DAI_ERC20, [
+        ] = await ethers.getSigners();
+        DAI_ERC20 = await deployContract(ownerAddress, Build_DAI_ERC20, [
             "DAI",
             "DAI",
         ]);
-        const DAI_CERC20 = await deployContract(ownerAddress, Build_DAI_CERC20);
-        const RelayHub = await deployContract(ownerAddress, Build_RelayHub);
-        const ClassroomFactory = await deployContract(
+        DAI_CERC20 = await deployContract(ownerAddress, Build_DAI_ERC20, [
+            "CDAI",
+            "CDAI",
+        ]);
+        RelayHub = await deployContract(ownerAddress, Build_RelayHub);
+        ClassroomFactory = await deployContract(
             ownerAddress,
-            Build_ClassroomFactory, [], {
-                gasLimit: 6000000,
-            }
+            Build_ClassroomFactory, []
         );
-        const StudentFactory = await deployContract(
+        StudentFactory = await deployContract(
             ownerAddress,
             Build_StudentFactory
         );
-        const StudentApplicationFactory = await deployContract(
+        StudentApplicationFactory = await deployContract(
             ownerAddress,
             Build_StudentApplicationFactory
         );
-        const University = await deployContract(
-            ownerAddress,
-            Build_University, [
-                name,
-                cut,
-                studentGSNDeposit,
-                DAI_ERC20.address,
-                DAI_CERC20.address,
-                RelayHub.address,
-                ClassroomFactory.address,
-                StudentFactory.address,
-                StudentApplicationFactory.address,
-            ], {
-                gasLimit: 6000000,
-            }
-        );
+        University = await deployContract(ownerAddress, Build_University, [
+            name,
+            cut,
+            studentGSNDeposit,
+            DAI_ERC20.address,
+            DAI_CERC20.address,
+            RelayHub.address,
+            ClassroomFactory.address,
+            StudentFactory.address,
+            StudentApplicationFactory.address,
+        ]);
         await University.deployed();
         await University.connect(student1).studentSelfRegister(sName);
         await University.connect(student2).studentSelfRegister(sName);
@@ -124,54 +152,53 @@ describe("Class process Checks", function() {
             role,
             studentCount - 1
         );
-        const Student1 = new ethers.Contract(
+        Student1 = new ethers.Contract(
             studentAddress1,
             Build_Student.abi,
-            provider
+            ethers.provider
         );
-        const Student2 = new ethers.Contract(
+        Student2 = new ethers.Contract(
             studentAddress2,
             Build_Student.abi,
-            provider
+            ethers.provider
         );
-        const Student3 = new ethers.Contract(
+        Student3 = new ethers.Contract(
             studentAddress3,
             Build_Student.abi,
-            provider
+            ethers.provider
         );
-        const Student4 = new ethers.Contract(
+        Student4 = new ethers.Contract(
             studentAddress4,
             Build_Student.abi,
-            provider
+            ethers.provider
         );
-        const Student5 = new ethers.Contract(
+        Student5 = new ethers.Contract(
             studentAddress5,
             Build_Student.abi,
-            provider
+            ethers.provider
         );
-        const StudentT1 = new ethers.Contract(
+        StudentT1 = new ethers.Contract(
             studentAddressT1,
             Build_Student.abi,
-            provider
+            ethers.provider
         );
         await StudentT1.deployed();
-        const ExampleChallenge = await deployContract(
+        ExampleChallenge = await deployContract(
             teacher1,
             Build_ExampleChallenge
         );
+        const teacher1Address = await teacher1.getAddress();
         const ClassroomAddress_ = await University.connect(
             ownerAddress
         ).newClassRoom(
-            teacher1.address,
+            teacher1Address,
             cName,
             cCut,
             cPCut,
             minScore,
             entryPrice,
             duration,
-            ExampleChallenge.address, {
-                gasLimit: 6000000,
-            }
+            ExampleChallenge.address
         );
         await ClassroomAddress_.wait();
         let role2 = ethers.utils.solidityKeccak256(
@@ -182,63 +209,36 @@ describe("Class process Checks", function() {
             role2,
             classroomCount - 1
         );
-        const Classroom = new ethers.Contract(
+        Classroom = new ethers.Contract(
             ClassroomAddress,
             Build_Classroom.abi,
-            provider
+            ethers.provider
         );
         await Classroom.deployed();
-        return {
-            DAI_ERC20,
-            DAI_CERC20,
-            RelayHub,
-            ClassroomFactory,
-            StudentFactory,
-            StudentApplicationFactory,
-            University,
-            Student1,
-            Student2,
-            Student3,
-            Student4,
-            Student5,
-            StudentT1,
-            ExampleChallenge,
-            Classroom,
-            ownerAddress,
-            student1,
-            student2,
-            student3,
-            student4,
-            student5,
-            studentFake,
-            teacher1,
-            teacher2,
-        };
-    }
+        checkpointId = await ethers.provider.send("evm_snapshot", []);
+    });
+
+    afterEach(async function() {
+        await ethers.provider.send("evm_revert", [checkpointId]);
+    });
 
     describe("Student apply fail", function() {
         it("must fail when registering to a wrong address", async function() {
-            const { Student1, student1, teacher1 } = await loadFixture(fixture);
             await expect(
-                Student1.connect(student1).applyToClassroom(teacher1.address)
+                Student1.connect(student1).applyToClassroom(teacher1._address)
             ).to.be.revertedWith("Student: address is not a valid classroom");
         });
         it("must fail if professor self apply", async function() {
-            const { StudentT1, Classroom, teacher1 } = await loadFixture(fixture);
             await expect(
                 StudentT1.connect(teacher1).applyToClassroom(Classroom.address)
             ).to.be.revertedWith("Classroom: professor can't be its own student");
         });
         it("must fail when registering before applications open", async function() {
-            const { Student1, student1, Classroom } = await loadFixture(fixture);
             await expect(
                 Student1.connect(student1).applyToClassroom(Classroom.address)
-            ).to.be.revertedWith("Classroom: applications closed ");
+            ).to.be.revertedWith("VM Exception while processing transaction: revert Classroom: applications closed");
         });
         it("must fail if student score too low", async function() {
-            const { Student1, student1, Classroom, teacher1 } = await loadFixture(
-                fixture
-            );
             await Classroom.connect(teacher1).changeMinScore(1);
             await expect(
                 Student1.connect(student1).applyToClassroom(Classroom.address)
@@ -248,7 +248,6 @@ describe("Class process Checks", function() {
 
     describe("Class process", function() {
         it("must register name at deploy", async function() {
-            const { University } = await loadFixture(fixture);
             expect(await University.name()).to.equal(name);
         });
     });

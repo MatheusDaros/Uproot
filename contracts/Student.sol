@@ -88,7 +88,6 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
             _university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
-        console.log("apply");
         IClassroom(classroomAddress).studentApply();
         _setupRole(READ_SCORE_ROLE, classroomAddress);
         _classroomAddress.push(classroomAddress);

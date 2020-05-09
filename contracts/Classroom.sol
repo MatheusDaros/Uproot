@@ -280,10 +280,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function studentApply() public override {
-        console.logAddress(_msgSender());
-        console.logAddress(owner());
         require(
-            _msgSender() != owner(),
+            IStudent(_msgSender()).ownerStudent() != owner(),
             "Classroom: professor can't be its own student"
         );
         require(
