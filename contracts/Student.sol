@@ -93,6 +93,14 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         _classroomAddress.push(classroomAddress);
     }
 
+    function setAnswerSecret(address classroomAddress, bytes32 secret) public onlyOwner{
+        IStudentApplication(viewMyApplication(classroomAddress)).setAnswerSecret(secret);
+    }
+
+    function viewChallengeMaterial(address classroomAddress) public view onlyOwner returns (string memory) {
+        return IStudentApplication(viewMyApplication(classroomAddress)).viewChallengeMaterial();
+    }
+
     function viewMyApplication(address classroomAddress) public view onlyOwner returns (address) {
         require(
             _university.isValidClassroom(classroomAddress),

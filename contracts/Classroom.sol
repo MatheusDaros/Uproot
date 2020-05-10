@@ -338,6 +338,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     function beginCourse(bool _____REMOVE_BEFORE_LAUNCH______MOCK) public onlyOwner {
         require(!openForApplication, "Classroom: applications are still open");
+        require(!classroomActive, "Classroom: course already open");
         require(
             IERC20(daiToken).balanceOf(address(this)) == 0,
             "Classroom: invest all balance before begin"
@@ -362,11 +363,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function finishCourse() public onlyOwner {
-        require(_timestampAlarm, "Classroom: too soon to finish course");
         require(
             _validStudentApplications.length > 0,
             "Classroom: no applications"
         );
+        require(_timestampAlarm, "Classroom: too soon to finish course");
         _totalBalance = _recoverInvestment();
         courseFinished = true;
         emit LogCourseFinished();

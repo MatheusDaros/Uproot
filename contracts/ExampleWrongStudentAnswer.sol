@@ -21,8 +21,8 @@ contract ExampleWrongStudentAnswer is IStudentAnswer, Ownable {
         return _seedAnswer;
     }
 
-    function solve(bool register) public onlyOwner {
-        if (register) _application.registerAnswer();
+    function solve(bytes32 secret, bool register) public onlyOwner {
+        if (register) _application.registerAnswer(secret);
         bytes32 hint1 = _application.getHint(0);
         bytes32 hint2 = _application.getHint(1);
         _seedAnswer = hint1 ^ hint2;

@@ -85,6 +85,11 @@ describe("Class process Checks", function() {
         Student4,
         Student5,
         StudentT1,
+        StudentApplication1,
+        StudentApplication2,
+        StudentApplication3,
+        StudentApplication4,
+        StudentApplication5,
         ExampleChallenge,
         Classroom,
         ownerAddress,
@@ -98,6 +103,7 @@ describe("Class process Checks", function() {
         teacher2;
 
     var baseCheckpointId;
+    var courseCheckpointId;
 
     before(async function() {
         [
@@ -239,20 +245,18 @@ describe("Class process Checks", function() {
         baseCheckpointId = await ethers.provider.send("evm_snapshot", []);
     });
 
-    afterEach(async function() {
-        await ethers.provider.send("evm_revert", [baseCheckpointId]);
-    });
-
     describe("Student apply fail", function() {
         it("must fail when registering to a wrong address", async function() {
             await expect(
                 Student1.connect(student1).applyToClassroom(teacher1._address)
             ).to.be.revertedWith("Student: address is not a valid classroom");
+            await ethers.provider.send("evm_revert", [baseCheckpointId]);
         });
         it("must fail if professor self apply", async function() {
             await expect(
                 StudentT1.connect(teacher1).applyToClassroom(Classroom.address)
             ).to.be.revertedWith("Classroom: professor can't be its own student");
+            await ethers.provider.send("evm_revert", [baseCheckpointId]);
         });
         it("must fail when registering before applications open", async function() {
             await expect(
@@ -260,17 +264,19 @@ describe("Class process Checks", function() {
             ).to.be.revertedWith(
                 "VM Exception while processing transaction: revert Classroom: applications closed"
             );
+            await ethers.provider.send("evm_revert", [baseCheckpointId]);
         });
         it("must fail if student score too low", async function() {
             await Classroom.connect(teacher1).changeMinScore(1);
             await expect(
                 Student1.connect(student1).applyToClassroom(Classroom.address)
             ).to.be.revertedWith("Classroom: student doesn't have enough score");
+            await ethers.provider.send("evm_revert", [baseCheckpointId]);
         });
     });
 
     describe("Class process", function() {
-        it("must do all the process", async function() {
+        it("must open applications and begin course, saving state", async function() {
             await expect(
                 Classroom.connect(teacher2).openApplications()
             ).to.be.revertedWith("Ownable: caller is not the owner");
@@ -321,30 +327,57 @@ describe("Class process Checks", function() {
             await Classroom.connect(teacher1).openApplications();
             expect(await Classroom.openForApplication()).to.equal(true);
             expect(await Classroom.isClassroomEmpty()).to.equal(true);
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(0);
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                0
+            );
             await Student1.connect(student1).applyToClassroom(Classroom.address);
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(1);
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                1
+            );
             expect(await Classroom.isClassroomEmpty()).to.equal(false);
             await Student2.connect(student2).applyToClassroom(Classroom.address);
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(2);
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                2
+            );
             expect(await Classroom.isClassroomEmpty()).to.equal(false);
             expect(await Classroom.isCourseOngoing()).to.equal(false);
             expect(Classroom.connect(teacher1).beginCourse(true)).to.be.revertedWith(
                 "Classroom: applications are still open"
             );
             await Classroom.connect(teacher1).closeApplications();
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(2);
-            expect(await Classroom.connect(teacher1).countReadyApplications()).to.equal(0);
-            await DAI_ERC20.mock.balanceOf.withArgs(Classroom.address).returns(ethers.utils.parseEther("1000"));
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                2
+            );
+            expect(
+                await Classroom.connect(teacher1).countReadyApplications()
+            ).to.equal(0);
+            await DAI_ERC20.mock.balanceOf
+                .withArgs(Classroom.address)
+                .returns(ethers.utils.parseEther("1000"));
             expect(Classroom.connect(teacher1).beginCourse(true)).to.be.revertedWith(
                 "Classroom: invest all balance before begin"
             );
-            expect(await Classroom.connect(teacher1).countReadyApplications()).to.equal(0);
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(2);
-            await DAI_ERC20.mock.balanceOf.withArgs(Classroom.address).returns(ethers.utils.parseEther("0"));
+            expect(Classroom.connect(teacher1).finishCourse()).to.be.revertedWith(
+                "Classroom: no applications"
+            );
+            expect(
+                await Classroom.connect(teacher1).countReadyApplications()
+            ).to.equal(0);
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                2
+            );
+            await DAI_ERC20.mock.balanceOf
+                .withArgs(Classroom.address)
+                .returns(ethers.utils.parseEther("0"));
             await Classroom.connect(teacher1).beginCourse(true);
-            expect(await Student1.connect(student1).viewMyApplicationState(Classroom.address)).to.equal(6);
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(0);
+            expect(
+                await Student1.connect(student1).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(6);
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                0
+            );
             expect(await Classroom.isClassroomEmpty()).to.equal(true);
             await Classroom.connect(teacher1).openApplications();
             expect(await Classroom.openForApplication()).to.equal(true);
@@ -354,49 +387,150 @@ describe("Class process Checks", function() {
             await Student3.connect(student3).applyToClassroom(Classroom.address);
             await Student4.connect(student4).applyToClassroom(Classroom.address);
             await Student5.connect(student5).applyToClassroom(Classroom.address);
-            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(5);
-            expect(await Classroom.connect(teacher1).countReadyApplications()).to.equal(0);
-            const studentApplicationAddress1 = await Student1.connect(student1).viewMyApplication(Classroom.address);
-            const StudentApplication1 = new ethers.Contract(
+            expect(await Classroom.connect(teacher1).countNewApplications()).to.equal(
+                5
+            );
+            expect(
+                await Classroom.connect(teacher1).countReadyApplications()
+            ).to.equal(0);
+            const studentApplicationAddress1 = await Student1.connect(
+                student1
+            ).viewMyApplication(Classroom.address);
+            StudentApplication1 = new ethers.Contract(
                 studentApplicationAddress1,
                 Build_StudentApplication.abi,
                 ethers.provider
             );
             await StudentApplication1.deployed();
-            expect(await Student1.connect(student1).viewMyApplicationState(Classroom.address)).to.equal(0);
-            const studentApplicationAddress2 = await Student2.connect(student2).viewMyApplication(Classroom.address);
-            const StudentApplication2 = new ethers.Contract(
+            expect(
+                await Student1.connect(student1).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(0);
+            const studentApplicationAddress2 = await Student2.connect(
+                student2
+            ).viewMyApplication(Classroom.address);
+            StudentApplication2 = new ethers.Contract(
                 studentApplicationAddress2,
                 Build_StudentApplication.abi,
                 ethers.provider
             );
-            const studentApplicationAddress3 = await Student3.connect(student3).viewMyApplication(Classroom.address);
-            const StudentApplication3 = new ethers.Contract(
+            const studentApplicationAddress3 = await Student3.connect(
+                student3
+            ).viewMyApplication(Classroom.address);
+            StudentApplication3 = new ethers.Contract(
                 studentApplicationAddress3,
                 Build_StudentApplication.abi,
                 ethers.provider
             );
-            const studentApplicationAddress4 = await Student4.connect(student4).viewMyApplication(Classroom.address);
-            const StudentApplication4 = new ethers.Contract(
+            const studentApplicationAddress4 = await Student4.connect(
+                student4
+            ).viewMyApplication(Classroom.address);
+            StudentApplication4 = new ethers.Contract(
                 studentApplicationAddress4,
                 Build_StudentApplication.abi,
                 ethers.provider
             );
-            const studentApplicationAddress5 = await Student5.connect(student5).viewMyApplication(Classroom.address);
-            const StudentApplication5 = new ethers.Contract(
+            const studentApplicationAddress5 = await Student5.connect(
+                student5
+            ).viewMyApplication(Classroom.address);
+            StudentApplication5 = new ethers.Contract(
                 studentApplicationAddress5,
                 Build_StudentApplication.abi,
                 ethers.provider
             );
             await StudentApplication5.deployed();
-            await DAI_ERC20.mock.balanceOf.withArgs(student1._address).returns(ethers.utils.parseEther("0"));
-            expect(StudentApplication1.connect(student1).payEntryPrice()).to.be.revertedWith(
+            await DAI_ERC20.mock.balanceOf
+                .withArgs(student1._address)
+                .returns(ethers.utils.parseEther("0"));
+            expect(
+                StudentApplication1.connect(student1).payEntryPrice()
+            ).to.be.revertedWith(
                 "StudentApplication: sender can't pay the entry price"
             );
-            await DAI_ERC20.mock.balanceOf.withArgs(student1._address).returns(ethers.utils.parseEther("1000"));
+            await DAI_ERC20.mock.balanceOf
+                .withArgs(student1._address)
+                .returns(ethers.utils.parseEther("1000"));
+            await DAI_ERC20.mock.balanceOf.returns(ethers.utils.parseEther("1000"));
             await DAI_ERC20.mock.transferFrom.returns(true);
             await StudentApplication1.connect(student1).payEntryPrice();
-            expect(await Student1.connect(student1).viewMyApplicationState(Classroom.address)).to.equal(1);
+            expect(
+                await Student1.connect(student1).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(1);
+            await StudentApplication2.connect(student2).payEntryPrice();
+            expect(
+                await Student2.connect(student2).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(1);
+            await StudentApplication3.connect(student3).payEntryPrice();
+            await Classroom.connect(teacher1).closeApplications();
+            expect(
+                await Student3.connect(student3).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(1);
+            await StudentApplication4.connect(student4).payEntryPrice();
+            expect(
+                await Student4.connect(student4).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(1);
+            expect(
+                await Student5.connect(student5).viewMyApplicationState(
+                    Classroom.address
+                )
+            ).to.equal(0);
+            await DAI_ERC20.mock.balanceOf
+                .withArgs(Classroom.address)
+                .returns(ethers.utils.parseEther("0"));
+            await Classroom.connect(teacher1).beginCourse(true);
+            expect(await Classroom.connect(teacher1).isCourseOngoing()).to.equal(
+                true
+            );
+            expect(await Classroom.connect(student1).isCourseOngoing()).to.equal(
+                true
+            );
+            courseCheckpointId = await ethers.provider.send("evm_snapshot", []);
+        });
+
+        it("must recover state, handle student answers", async function() {
+            await ethers.provider.send("evm_revert", [courseCheckpointId]);
+            expect(await Classroom.connect(teacher1).isCourseOngoing()).to.equal(
+                true
+            );
+            expect(Classroom.connect(teacher1).beginCourse(true)).to.be.revertedWith(
+                "Classroom: course already open"
+            );
+            expect(Classroom.connect(teacher1).beginCourse(true)).to.be.revertedWith(
+                "Classroom: course already open"
+            );
+            expect(StudentApplication1.connect(student1).viewChallengeMaterial()).to.be.revertedWith(
+                "StudentApplication: read permission denied"
+            );
+            expect(await Student1.connect(student1).viewChallengeMaterial(Classroom.address)).to.equal(
+                "Material"
+            );
+            const Student1Answer = await deployContract(
+                student1,
+                Build_ExampleStudentAnswer, [StudentApplication1.address]
+            );
+            const Student2Answer = await deployContract(
+                student2,
+                Build_ExampleStudentAnswer, [StudentApplication2.address]
+            );
+            const Student3Answer = await deployContract(
+                student3,
+                Build_ExampleWrongStudentAnswer, [StudentApplication3.address]
+            );
+            const Student4Answer = await deployContract(
+                student4,
+                Build_ExampleWrongStudentAnswer, [StudentApplication1.address] //student trying to hack student1
+            );
+            await Student4Answer.deployed();
+
         });
     });
 });

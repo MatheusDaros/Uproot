@@ -31,6 +31,7 @@ contract StudentApplication is Ownable, IStudentApplication {
     uint256 _principalReturned;
     uint256 _completionPrize;
     uint256 _entryPrice;
+    bytes32 _answerSecret;
 
     constructor(
         address studentAddress,
@@ -97,8 +98,8 @@ contract StudentApplication is Ownable, IStudentApplication {
 
     function activate() public override onlyOwner {
         require(
-            _applicationState == ApplicationState.New,
-            "StudentApplication: application is not New"
+            _applicationState == ApplicationState.Ready,
+            "StudentApplication: application is not Ready"
         );
         _applicationState = ApplicationState.Active;
     }
@@ -111,7 +112,27 @@ contract StudentApplication is Ownable, IStudentApplication {
         _applicationState = ApplicationState.Expired;
     }
 
-    function registerAnswer() public override {
+    function setAnswerSecret(bytes32 secret) public override {
+        require(
+            _msgSender() == _studentAddress,
+            "StudentApplication: write permission denied"
+        );
+        require(
+            _answerSecret != bytes32(0),
+            "StudentApplication: must set a valid secret"
+        );
+        _answerSecret = secret;
+    }
+
+    function registerAnswer(bytes32 secret) public override {
+        require(
+            _answerSecret != bytes32(0),
+            "StudentApplication: application secret not set"
+        );
+        require(
+            secret == _answerSecret, 
+            "StudentApplication: secret wrong"
+        );
         require(
             _applicationState == ApplicationState.Active,
             "StudentApplication: application is not active"
@@ -125,7 +146,7 @@ contract StudentApplication is Ownable, IStudentApplication {
         _hasAnswer = true;
     }
 
-    function viewChallengeMaterial() public view returns (string memory) {
+    function viewChallengeMaterial() public view override returns (string memory) {
         require(
             _msgSender() == _studentAddress || _msgSender() == owner(),
             "StudentApplication: read permission denied"

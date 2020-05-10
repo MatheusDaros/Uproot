@@ -21,8 +21,8 @@ contract ExampleStudentAnswer is IStudentAnswer, Ownable {
         return _seedAnswer;
     }
 
-    function solve() public onlyOwner {
-        _application.registerAnswer();
+    function solve(bytes32 secret) public onlyOwner {
+        _application.registerAnswer(secret);
         bytes32 hint1 = _application.getHint(0);
         bytes32 hint2 = _application.getHint(1);
         _seedAnswer = ~(hint1 ^ hint2);

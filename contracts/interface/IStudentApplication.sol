@@ -4,7 +4,9 @@ interface IStudentApplication {
 
     function entryPrice() external view returns (uint256);
 
-    function registerAnswer() external;
+    function setAnswerSecret(bytes32) external;
+
+    function registerAnswer(bytes32) external;
 
     function studentAddress() external view returns (address);
 
@@ -25,4 +27,6 @@ interface IStudentApplication {
     function registerFinalAnswer() external;
 
     function accountAllowance(uint256, uint256) external;
+    
+    function viewChallengeMaterial() external view returns (string memory);
 }
