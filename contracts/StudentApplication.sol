@@ -82,9 +82,13 @@ contract StudentApplication is Ownable, IStudentApplication {
             _applicationState == ApplicationState.New,
             "StudentApplication: application is not New"
         );
+        require(
+            daiToken.balanceOf(_msgSender()) >= _entryPrice,
+            "StudentApplication: sender can't pay the entry price"
+        );
         TransferHelper.safeTransferFrom(
             address(daiToken),
-            msg.sender,
+            _msgSender(),
             _classroomAddress,
             _entryPrice
         );
@@ -185,6 +189,6 @@ contract StudentApplication is Ownable, IStudentApplication {
             applicationState() > 2,
             "StudentApplication: application not finished"
         );
-        TransferHelper.safeTransferFrom(address(daiToken), _classroomAddress, to, val);
+        TransferHelper.safeTransferFrom(address(daiToken), address(this), to, val);
     }
 }

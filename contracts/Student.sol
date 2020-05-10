@@ -88,9 +88,26 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
             _university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
-        IClassroom(classroomAddress).studentApply();
         _setupRole(READ_SCORE_ROLE, classroomAddress);
+        IClassroom(classroomAddress).studentApply();
         _classroomAddress.push(classroomAddress);
+    }
+
+    function viewMyApplication(address classroomAddress) public view onlyOwner returns (address) {
+        require(
+            _university.isValidClassroom(classroomAddress),
+            "Student: address is not a valid classroom"
+        );
+        return IClassroom(classroomAddress).viewMyApplication();
+    }
+
+    function viewMyApplicationState(address classroomAddress) public view onlyOwner returns (uint256) {
+        require(
+            _university.isValidClassroom(classroomAddress),
+            "Student: address is not a valid classroom"
+        );
+        address app = IClassroom(classroomAddress).viewMyApplication();
+        return IStudentApplication(app).applicationState();
     }
 
     // not a feature but it is something a teacher would sometimes want to do

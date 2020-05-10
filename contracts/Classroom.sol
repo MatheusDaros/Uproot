@@ -118,7 +118,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         address oracleTimestamp,
         bytes32 requestIdTimestamp,
         uint256 oraclePaymentTimestamp,
-        address linkToken
+        address linkToken,
+        bool _____REMOVE_BEFORE_LAUNCH______MOCK
     ) public onlyOwner {
         _oracleRandom = oracleRandom;
         _requestIdRandom = requestIdRandom;
@@ -131,7 +132,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentRandom,
             "Classroom: not enough Link tokens"
         );
-        _generateSeed();
+        if (!_____REMOVE_BEFORE_LAUNCH______MOCK) _generateSeed();
     }
 
     function configureUniswap(
@@ -145,13 +146,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function configureAave(
-        address lendingPoolAddressesProvider
+        address lendingPoolAddressesProvider,
+        bool _____REMOVE_BEFORE_LAUNCH______MOCK
     ) public onlyOwner {
         _aaveProvider = ILendingPoolAddressesProvider(lendingPoolAddressesProvider);
+        _aaveLendingPoolCore = _____REMOVE_BEFORE_LAUNCH______MOCK ? lendingPoolAddressesProvider :_aaveProvider.getLendingPoolCore();
+        if (_____REMOVE_BEFORE_LAUNCH______MOCK) return;
         _aaveLendingPool = ILendingPool(_aaveProvider.getLendingPool());
-        _aaveLendingPoolCore = _aaveProvider.getLendingPoolCore();
         _aTokenDAI = ILendingPoolCore(_aaveLendingPoolCore)
-            .getReserveATokenAddress(address(daiToken));
+            .getReserveATokenAddress(daiToken);
     }
 
     function transferOwnershipClassroom(address newOwner) public override {
@@ -288,12 +291,12 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             university.studentIsRegistered(_msgSender()),
             "Classroom: student is not registered"
         );
-        require(openForApplication, "Classroom: applications closed");
         IStudent applicant = IStudent(_msgSender());
         require(
             applicant.score() >= minScore,
             "Classroom: student doesn't have enough score"
         );
+        require(openForApplication, "Classroom: applications closed");
         address application = _createStudentApplication(address(applicant));
         _studentApplications.push(application);
     }
@@ -321,7 +324,19 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         return blockhash(0) ^ _seed;
     }
 
-    function beginCourse() public onlyOwner {
+    function countNewApplications() public view onlyOwner returns (uint256 count) {
+        for (uint256 i = 0; i < _studentApplications.length; i++) {
+            if (IStudentApplication(_studentApplications[i]).applicationState() == 0) count++;
+        }
+    }
+
+    function countReadyApplications() public view onlyOwner returns (uint256 count) {
+        for (uint256 i = 0; i < _studentApplications.length; i++) {
+            if (IStudentApplication(_studentApplications[i]).applicationState() == 1) count++;
+        }
+    }
+
+    function beginCourse(bool _____REMOVE_BEFORE_LAUNCH______MOCK) public onlyOwner {
         require(!openForApplication, "Classroom: applications are still open");
         require(
             IERC20(daiToken).balanceOf(address(this)) == 0,
@@ -329,12 +344,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         );
         checkApplications();
         _studentApplications = new address[](0);
-        require(
-            _validStudentApplications.length > 0,
-            "Classroom: no ready application"
-        );
+        if (_validStudentApplications.length == 0 ) return;
         classroomActive = true;
-        _setAlarm();
+        if(_____REMOVE_BEFORE_LAUNCH______MOCK) _timestampAlarm = true;
+        else _setAlarm();
     }
 
     function checkApplications() internal {
@@ -472,8 +485,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     {
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
             if (studentAllowances[i] > 0)
-                TransferHelper.safeApprove
-                    (address(daiToken),
+                TransferHelper.safeTransfer
+                    (daiToken,
                     address(_validStudentApplications[i]),
                     studentAllowances[i]
                 );
