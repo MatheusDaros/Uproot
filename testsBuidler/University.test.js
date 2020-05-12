@@ -36,15 +36,9 @@ const minScore = 0;
 const entryPrice = ethers.utils.parseEther("200");
 const duration = 60 * 60 * 24 * 30;
 
-describe("Basic Checks", function() {
+describe("Basic checks", function() {
     async function fixture(
-        provider, [
-            ownerAddress,
-            student1,
-            student2,
-            teacher1,
-            teacher2,
-        ]
+        provider, [ownerAddress, student1, student2, teacher1, teacher2]
     ) {
         const DAI_ERC20 = await deployContract(ownerAddress, Build_DAI_ERC20, [
             "DAI",
@@ -55,28 +49,37 @@ describe("Basic Checks", function() {
         const ClassroomFactory = await deployContract(
             ownerAddress,
             Build_ClassroomFactory, [], {
-                gasLimit: 6000000
+                gasLimit: 6000000,
             }
         );
         const StudentFactory = await deployContract(
             ownerAddress,
-            Build_StudentFactory
+            Build_StudentFactory, [], {
+                gasLimit: 6000000,
+            }
         );
         const StudentApplicationFactory = await deployContract(
             ownerAddress,
-            Build_StudentApplicationFactory
+            Build_StudentApplicationFactory, [], {
+                gasLimit: 6000000,
+            }
         );
-        const University = await deployContract(ownerAddress, Build_University, [
-            name,
-            cut,
-            studentGSNDeposit,
-            DAI_ERC20.address,
-            DAI_CERC20.address,
-            RelayHub.address,
-            ClassroomFactory.address,
-            StudentFactory.address,
-            StudentApplicationFactory.address,
-        ]);
+        const University = await deployContract(
+            ownerAddress,
+            Build_University, [
+                name,
+                cut,
+                studentGSNDeposit,
+                DAI_ERC20.address,
+                DAI_CERC20.address,
+                RelayHub.address,
+                ClassroomFactory.address,
+                StudentFactory.address,
+                StudentApplicationFactory.address,
+            ], {
+                gasLimit: 6000000,
+            }
+        );
         await University.deployed();
         const studentAddress_ = await University.connect(
             student1

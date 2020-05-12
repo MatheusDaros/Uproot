@@ -50,7 +50,11 @@ contract StudentApplication is Ownable, IStudentApplication {
         _entryPrice = IClassroom(_classroomAddress).entryPrice();
     }
 
-    function studentAddress() public view override onlyOwner returns (address) {
+    function studentAddress() public view override returns (address) {
+        require(
+            _msgSender() == _studentAddress || _msgSender() == owner(),
+            "StudentApplication: read permission denied"
+        );
         return _studentAddress;
     }
 

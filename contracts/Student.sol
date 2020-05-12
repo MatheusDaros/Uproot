@@ -97,15 +97,31 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         _classroomAddress.push(classroomAddress);
     }
 
-    function setAnswerSecret(address classroomAddress, bytes32 secret) public onlyOwner{
-        IStudentApplication(viewMyApplication(classroomAddress)).setAnswerSecret(secret);
+    function setAnswerSecret(address classroomAddress, bytes32 secret)
+        public
+        onlyOwner
+    {
+        IStudentApplication(viewMyApplication(classroomAddress))
+            .setAnswerSecret(secret);
     }
 
-    function viewChallengeMaterial(address classroomAddress) public view onlyOwner returns (string memory) {
-        return IStudentApplication(viewMyApplication(classroomAddress)).viewChallengeMaterial();
+    function viewChallengeMaterial(address classroomAddress)
+        public
+        view
+        onlyOwner
+        returns (string memory)
+    {
+        return
+            IStudentApplication(viewMyApplication(classroomAddress))
+                .viewChallengeMaterial();
     }
 
-    function viewMyApplication(address classroomAddress) public view onlyOwner returns (address) {
+    function viewMyApplication(address classroomAddress)
+        public
+        view
+        onlyOwner
+        returns (address)
+    {
         require(
             _university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
@@ -113,7 +129,12 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         return IClassroom(classroomAddress).viewMyApplication();
     }
 
-    function viewMyApplicationState(address classroomAddress) public view onlyOwner returns (uint256) {
+    function viewMyApplicationState(address classroomAddress)
+        public
+        view
+        onlyOwner
+        returns (uint256)
+    {
         require(
             _university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
@@ -189,11 +210,23 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         );
     }
 
-    function requestGrant(address grantsManager, address studentApplication) public onlyOwner {
-        require(MyUtils.searchInsideArray(address(this), _university.viewMyApplications()), "Student: wrong application address");
+    function requestGrant(address grantsManager, address studentApplication)
+        public
+        onlyOwner
+    {
+        require(
+            IStudentApplication(studentApplication).studentAddress() == address(this),
+            "Student: wrong application address"
+        );
         uint256 price = IStudentApplication(studentApplication).entryPrice();
-        grantRole(READ_SCORE_ROLE, grantsManager);
-        IGrantsManager(grantsManager).studentRequestGrant(price, studentApplication);
+        _setupRole(READ_SCORE_ROLE, grantsManager);
+        require(
+            IGrantsManager(grantsManager).studentRequestGrant(
+                price,
+                studentApplication
+            ),
+            "Student: grant denied"
+        );
     }
 
     function acceptRelayedCall(

@@ -60,7 +60,7 @@ const uniswapDAI = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6";
 const uniswapLINK = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6";
 const uniswapRouter = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6";
 
-describe("Class process Checks", function() {
+describe("Class process checks", function() {
     var DAI_ERC20,
         DAI_CERC20,
         LINK,

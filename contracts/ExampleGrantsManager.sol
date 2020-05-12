@@ -2,6 +2,7 @@ pragma solidity ^0.6.6;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@nomiclabs/buidler/console.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IGrantsManager.sol";
 import "./interface/IStudent.sol";
@@ -69,16 +70,18 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
             IUniversity(_universityAddress).studentIsRegistered(_msgSender()),
             "GrantsManager: Student is not registered"
         );
-        if (price > _maximumPrice) return false;
-        if (
-            _preApprovedStudents[_msgSender()] || _approvalCriteria(_msgSender())
-        ) {
-            giveGrant(studentApplication, price);
-            _studentsLookup.push(_msgSender());
-            _grantsLookup[_msgSender()].push(price);
-            return true;
-        }
-        return false;
+        require(
+            price <= _maximumPrice,
+            "GrantsManager: Classroom price is too high"
+        );
+        require(
+            _preApprovedStudents[_msgSender()] || _approvalCriteria(_msgSender()),
+            "GrantsManager: Student doesn't meet the criterias"
+        );
+        giveGrant(studentApplication, price);
+        _studentsLookup.push(_msgSender());
+        _grantsLookup[_msgSender()].push(price);
+        return true;
     }
 
     function _approvalCriteria(address student) internal view returns (bool) {
@@ -89,6 +92,6 @@ contract ExampleGrantsManager is Ownable, IGrantsManager {
             .length;
         if (count < _requiredCount) return false;
         uint256 avgScore = uint256(score).div(count);
-        return avgScore > _requiredAvg;
+        return avgScore >= _requiredAvg;
     }
 }
