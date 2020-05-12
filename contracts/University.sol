@@ -222,6 +222,15 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return viewStudentApplications(_msgSender());
     }
 
+    /// @return the address of the application of a Student, called from the owner
+    function viewMyStudentApplications(address student) public view returns (address[] memory) {
+        require(
+            IStudent(student).ownerStudent() == _msgSender(),
+            "University: invalid student address"
+        );
+        return _studentApplicationsMapping[student];
+    }
+
     /// @param addr Address of the student
     /// @return the addresses of the applications of a the supplied address
     function viewStudentApplications(address addr)
