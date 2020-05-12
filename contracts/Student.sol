@@ -37,7 +37,6 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         _score = 0;
         _university = IUniversity(universityAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        grantRole(READ_SCORE_ROLE, _msgSender());
         grantRole(MODIFY_SCORE_ROLE, universityAddress);
         if (_msgSender() != universityAddress) {
             grantRole(READ_SCORE_ROLE, universityAddress);
@@ -50,6 +49,11 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
 
     function ownerStudent() public view override returns (address) {
         return owner();
+    }
+
+    function transferOwnershipStudent(address newOwner) public override {
+        grantRole(READ_SCORE_ROLE, newOwner);
+        transferOwnership(newOwner);
     }
 
     function changeName(bytes32 val) public onlyOwner {
@@ -190,10 +194,6 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         uint256 price = IStudentApplication(studentApplication).entryPrice();
         grantRole(READ_SCORE_ROLE, grantsManager);
         IGrantsManager(grantsManager).studentRequestGrant(price, studentApplication);
-    }
-
-    function transferOwnershipStudent(address newOwner) public override {
-        transferOwnership(newOwner);
     }
 
     function acceptRelayedCall(

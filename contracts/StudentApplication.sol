@@ -118,7 +118,7 @@ contract StudentApplication is Ownable, IStudentApplication {
             "StudentApplication: write permission denied"
         );
         require(
-            _answerSecret != bytes32(0),
+            secret != bytes32(0),
             "StudentApplication: must set a valid secret"
         );
         _answerSecret = secret;
@@ -131,7 +131,7 @@ contract StudentApplication is Ownable, IStudentApplication {
         );
         require(
             secret == _answerSecret, 
-            "StudentApplication: secret wrong"
+            "StudentApplication: wrong secret"
         );
         require(
             _applicationState == ApplicationState.Active,
@@ -139,7 +139,7 @@ contract StudentApplication is Ownable, IStudentApplication {
         );
         IStudentAnswer answer = IStudentAnswer(_msgSender());
         require(
-            answer.getOwner() == _studentAddress,
+            answer.getOwner() == IStudent(_studentAddress).ownerStudent(),
             "StudentApplication: getOwner result is wrong"
         );
         _answer = answer;
@@ -197,6 +197,22 @@ contract StudentApplication is Ownable, IStudentApplication {
         _completionPrize = prize;
     }
 
+    function viewPrincipalReturned() public view returns (uint256) {
+        require(
+            _msgSender() == _studentAddress || _msgSender() == IStudent(_studentAddress).ownerStudent(),
+            "StudentApplication: read permission denied"
+        );
+        return _principalReturned;
+    }
+
+    function viewPrizeReturned() public view returns (uint256) {
+        require(
+            _msgSender() == _studentAddress || _msgSender() == IStudent(_studentAddress).ownerStudent(),
+            "StudentApplication: read permission denied"
+        );
+        return _completionPrize;
+    }
+
     function withdrawAllResults(address to) public override {
         withdrawResults(to, _principalReturned + _completionPrize);
     }
@@ -210,6 +226,6 @@ contract StudentApplication is Ownable, IStudentApplication {
             applicationState() > 2,
             "StudentApplication: application not finished"
         );
-        TransferHelper.safeTransferFrom(address(daiToken), address(this), to, val);
+        TransferHelper.safeTransfer(address(daiToken), to, val);
     }
 }

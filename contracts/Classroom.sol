@@ -30,7 +30,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address[] _validStudentApplications;
     mapping(address => address) _studentApplicationsLink;
     uint256 _endDate;
-    uint256 _totalBalance;
+    uint256 _courseBalance;
     bytes32 _seed;
 
     //Classroom parameters
@@ -96,7 +96,9 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         classroomActive = false;
         daiToken = daiAddress;
         cDAI = compoundDAIAddress;
-        _studentApplicationFactory = IStudentApplicationFactory(studentApplicationFactoryAddress);
+        _studentApplicationFactory = IStudentApplicationFactory(
+            studentApplicationFactoryAddress
+        );
     }
 
     event LogOpenApplications();
@@ -129,7 +131,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _oraclePaymentTimestamp = oraclePaymentTimestamp;
         _linkToken = linkToken;
         require(
-            LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentRandom,
+            LinkTokenInterface(_linkToken).balanceOf(address(this)) >=
+                _oraclePaymentRandom,
             "Classroom: not enough Link tokens"
         );
         if (!_____REMOVE_BEFORE_LAUNCH______MOCK) _generateSeed();
@@ -145,13 +148,14 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _uniswapRouter = IUniswapV2Router01(uniswapRouter);
     }
 
-    function configureAave(
-        address lendingPoolAddressesProvider,
-        bool _____REMOVE_BEFORE_LAUNCH______MOCK
-    ) public onlyOwner {
-        _aaveProvider = ILendingPoolAddressesProvider(lendingPoolAddressesProvider);
-        _aaveLendingPoolCore = _____REMOVE_BEFORE_LAUNCH______MOCK ? lendingPoolAddressesProvider :_aaveProvider.getLendingPoolCore();
-        if (_____REMOVE_BEFORE_LAUNCH______MOCK) return;
+    function configureAave(address lendingPoolAddressesProvider)
+        public
+        onlyOwner
+    {
+        _aaveProvider = ILendingPoolAddressesProvider(
+            lendingPoolAddressesProvider
+        );
+        _aaveLendingPoolCore = _aaveProvider.getLendingPoolCore();
         _aaveLendingPool = ILendingPool(_aaveProvider.getLendingPool());
         _aTokenDAI = ILendingPoolCore(_aaveLendingPoolCore)
             .getReserveATokenAddress(daiToken);
@@ -225,14 +229,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function openApplications() public onlyOwner {
-        require(
-            _oracleRandom != address(0),
-            "Classroom: setup oracles first"
-        );
-        require(
-            _uniswapDAI != address(0),
-            "Classroom: setup Uniswap first"
-        );
+        require(_oracleRandom != address(0), "Classroom: setup oracles first");
+        require(_uniswapDAI != address(0), "Classroom: setup Uniswap first");
         require(
             _aaveLendingPoolCore != address(0),
             "Classroom: setup Aave first"
@@ -246,7 +244,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             "Classroom: students list not empty"
         );
         require(
-            LinkTokenInterface(_linkToken).balanceOf(address(this)) >= _oraclePaymentTimestamp,
+            LinkTokenInterface(_linkToken).balanceOf(address(this)) >=
+                _oraclePaymentTimestamp,
             "Classroom: not enough Link tokens"
         );
         openForApplication = true;
@@ -272,13 +271,17 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         applyFundsAave(aaveApply);
     }
 
-    function applyFundsCompound(uint256 val) internal{
+    function applyFundsCompound(uint256 val) internal {
         TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
         CERC20(cDAI).mint(val);
     }
 
-    function applyFundsAave(uint256 val) internal{
-        TransferHelper.safeApprove(address(daiToken), _aaveLendingPoolCore, val);
+    function applyFundsAave(uint256 val) internal {
+        TransferHelper.safeApprove(
+            address(daiToken),
+            _aaveLendingPoolCore,
+            val
+        );
         _aaveLendingPool.deposit(address(daiToken), val, 0);
     }
 
@@ -305,7 +308,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         internal
         returns (address)
     {
-        address newApplication = _studentApplicationFactory.newStudentApplication(
+        address newApplication = _studentApplicationFactory
+            .newStudentApplication(
             student,
             address(this),
             address(daiToken),
@@ -313,30 +317,47 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             generateNewSeed()
         );
         _studentApplicationsLink[student] = newApplication;
-        university.registerStudentApplication(
-            student,
-            newApplication
-        );
+        university.registerStudentApplication(student, newApplication);
         return newApplication;
     }
 
-    function generateNewSeed() internal view returns (bytes32) {
-        return blockhash(0) ^ _seed;
+    function generateNewSeed() internal returns (bytes32) {
+        _mutateSeed();
+        return keccak256(abi.encode(blockhash(0) ^ _seed));
     }
 
-    function countNewApplications() public view onlyOwner returns (uint256 count) {
+    function countNewApplications()
+        public
+        view
+        onlyOwner
+        returns (uint256 count)
+    {
         for (uint256 i = 0; i < _studentApplications.length; i++) {
-            if (IStudentApplication(_studentApplications[i]).applicationState() == 0) count++;
+            if (
+                IStudentApplication(_studentApplications[i])
+                    .applicationState() == 0
+            ) count++;
         }
     }
 
-    function countReadyApplications() public view onlyOwner returns (uint256 count) {
+    function countReadyApplications()
+        public
+        view
+        onlyOwner
+        returns (uint256 count)
+    {
         for (uint256 i = 0; i < _studentApplications.length; i++) {
-            if (IStudentApplication(_studentApplications[i]).applicationState() == 1) count++;
+            if (
+                IStudentApplication(_studentApplications[i])
+                    .applicationState() == 1
+            ) count++;
         }
     }
 
-    function beginCourse(bool _____REMOVE_BEFORE_LAUNCH______MOCK) public onlyOwner {
+    function beginCourse(bool _____REMOVE_BEFORE_LAUNCH______MOCK)
+        public
+        onlyOwner
+    {
         require(!openForApplication, "Classroom: applications are still open");
         require(!classroomActive, "Classroom: course already open");
         require(
@@ -345,15 +366,18 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         );
         checkApplications();
         _studentApplications = new address[](0);
-        if (_validStudentApplications.length == 0 ) return;
+        if (_validStudentApplications.length == 0) return;
         classroomActive = true;
-        if(_____REMOVE_BEFORE_LAUNCH______MOCK) _timestampAlarm = true;
+        if (_____REMOVE_BEFORE_LAUNCH______MOCK) _timestampAlarm = true;
         else _setAlarm();
     }
 
     function checkApplications() internal {
         for (uint256 i = 0; i < _studentApplications.length; i++) {
-            if (IStudentApplication(_studentApplications[i]).applicationState() == 1) {
+            if (
+                IStudentApplication(_studentApplications[i])
+                    .applicationState() == 1
+            ) {
                 IStudentApplication(_studentApplications[i]).activate();
                 _validStudentApplications.push(_studentApplications[i]);
             } else {
@@ -368,23 +392,31 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             "Classroom: no applications"
         );
         require(_timestampAlarm, "Classroom: too soon to finish course");
-        _totalBalance = _recoverInvestment();
+        _courseBalance = IERC20(daiToken).balanceOf(address(this));
+        _recoverInvestment();
         courseFinished = true;
         emit LogCourseFinished();
     }
 
-    function _recoverInvestment() internal returns (uint256) {
+    function courseBalance() public view onlyOwner() returns (uint256) {
+        return
+            courseFinished
+                ? IERC20(daiToken).balanceOf(address(this)).sub(_courseBalance)
+                : 0;
+    }
+
+    function _recoverInvestment() internal {
         uint256 balanceCompound = CERC20(cDAI).balanceOf(address(this));
         CERC20(cDAI).redeem(balanceCompound);
         uint256 balanceAave = aToken(_aTokenDAI).balanceOf(address(this));
         aToken(_aTokenDAI).redeem(balanceAave);
-        return balanceCompound.add(balanceAave);
     }
 
     function processResults() public onlyOwner {
         require(courseFinished, "Classroom: course not finished");
+        _courseBalance = courseBalance();
         require(
-            _totalBalance <= IERC20(daiToken).balanceOf(address(this)),
+            _courseBalance >= entryPrice.mul(_validStudentApplications.length),
             "Classroom: not enough DAI to proceed"
         );
         (uint256 successCount, uint256 emptyCount) = _startAnswerVerification();
@@ -402,12 +434,12 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         uint256 successCount = 0;
         uint256 emptyCount = 0;
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
-            IStudentApplication(_validStudentApplications[i]).registerFinalAnswer();
-            uint256 appState = IStudentApplication(_validStudentApplications[i]).applicationState();
-            if (appState == 3)
-                successCount++;
-            if (appState == 5)
-                emptyCount++;
+            IStudentApplication(_validStudentApplications[i])
+                .registerFinalAnswer();
+            uint256 appState = IStudentApplication(_validStudentApplications[i])
+                .applicationState();
+            if (appState == 3) successCount++;
+            if (appState == 5) emptyCount++;
         }
         return (successCount, emptyCount);
     }
@@ -417,7 +449,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         returns (uint256, uint256[] memory)
     {
         uint256 nStudents = _validStudentApplications.length;
-        uint256 returnsPool = _totalBalance.sub(entryPrice.mul(nStudents));
+        uint256 returnsPool = _courseBalance.sub(entryPrice.mul(nStudents));
         uint256 professorPaymentPerStudent = entryPrice.mul(principalCut).div(
             1e6
         );
@@ -433,9 +465,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             .div(successCount);
         uint256[] memory studentAllowances = new uint256[](nStudents);
         for (uint256 i = 0; i < nStudents; i++) {
-            uint256 appState = IStudentApplication(_validStudentApplications[i]).applicationState();
+            uint256 appState = IStudentApplication(_validStudentApplications[i])
+                .applicationState();
             if (appState == 3) {
-                IStudentApplication(_validStudentApplications[i]).accountAllowance(
+                IStudentApplication(_validStudentApplications[i])
+                    .accountAllowance(
                     studentPrincipalReturn,
                     successStudentPoolShare
                 );
@@ -444,21 +478,19 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
                 );
             }
             if (appState == 4) {
-                IStudentApplication(_validStudentApplications[i]).accountAllowance(
-                    studentPrincipalReturn,
-                    0
-                );
+                IStudentApplication(_validStudentApplications[i])
+                    .accountAllowance(studentPrincipalReturn, 0);
                 studentAllowances[i] = studentPrincipalReturn;
             }
-            if (appState== 5)
-                IStudentApplication(_validStudentApplications[i]).accountAllowance(0, 0);
+            if (appState == 5)
+                IStudentApplication(_validStudentApplications[i])
+                    .accountAllowance(0, 0);
         }
-        uint24 uCut = university.cut();
+        
         return (
-            _calculateUniversityShare(emptyCount, 
-                entryPrice,
+            _calculateUniversityShare(
+                emptyCount,
                 professorTotalPoolSuccessShare,
-                uCut,
                 nStudents,
                 professorPaymentPerStudent
             ),
@@ -466,8 +498,14 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         );
     }
 
-    function _calculateUniversityShare(uint256 emptyCount, uint256 _entryPrice, uint256 professorTotalPoolSuccessShare, uint24 uCut, uint256 nStudents, uint professorPaymentPerStudent) internal pure returns (uint){
-        uint256 universityEmptyShare = emptyCount.mul(_entryPrice);
+    function _calculateUniversityShare(
+        uint256 emptyCount,
+        uint256 professorTotalPoolSuccessShare,
+        uint256 nStudents,
+        uint256 professorPaymentPerStudent
+    ) internal view returns (uint256) {
+        uint24 uCut = university.cut();
+        uint256 universityEmptyShare = emptyCount.mul(entryPrice);
         uint256 universityPaymentShare = professorTotalPoolSuccessShare
             .mul(uCut)
             .div(1e6);
@@ -476,9 +514,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             .mul(notEmptyCount)
             .mul(uCut)
             .div(1e6);
-        return universityEmptyShare
-            .add(universityPaymentShare)
-            .add(universitySucessPoolShare);
+        return
+            universityEmptyShare.add(universityPaymentShare).add(
+                universitySucessPoolShare
+            );
     }
 
     function _resolveStudentAllowances(uint256[] memory studentAllowances)
@@ -486,8 +525,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     {
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
             if (studentAllowances[i] > 0)
-                TransferHelper.safeTransfer
-                    (daiToken,
+                TransferHelper.safeTransfer(
+                    daiToken,
                     address(_validStudentApplications[i]),
                     studentAllowances[i]
                 );
@@ -495,26 +534,34 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function _resolveUniversityCut(uint256 universityCut) internal {
-        TransferHelper.safeTransfer(address(daiToken), address(university), universityCut);
+        TransferHelper.safeTransfer(
+            address(daiToken),
+            address(university),
+            universityCut
+        );
         university.accountRevenue(universityCut);
     }
 
     function _updateStudentScores() internal {
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
-            uint256 appState = IStudentApplication(_validStudentApplications[i]).applicationState();
+            uint256 appState = IStudentApplication(_validStudentApplications[i])
+                .applicationState();
             if (appState == 3)
                 university.addStudentScore(
-                    IStudentApplication(_validStudentApplications[i]).studentAddress(),
+                    IStudentApplication(_validStudentApplications[i])
+                        .studentAddress(),
                     1
                 );
             if (appState == 4)
                 university.subStudentScore(
-                    IStudentApplication(_validStudentApplications[i]).studentAddress(),
+                    IStudentApplication(_validStudentApplications[i])
+                        .studentAddress(),
                     1
                 );
             if (appState == 5)
                 university.subStudentScore(
-                    IStudentApplication(_validStudentApplications[i]).studentAddress(),
+                    IStudentApplication(_validStudentApplications[i])
+                        .studentAddress(),
                     2
                 );
         }
@@ -523,14 +570,13 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function _clearClassroom() internal {
         _validStudentApplications = new address[](0);
         withdrawAllResults();
-        _totalBalance = 0;
+        _courseBalance = 0;
         courseFinished = false;
         _timestampAlarm = false;
-        _mutateSeed();
     }
 
     function _mutateSeed() internal {
-        _seed = (_seed & blockhash(0)) | (_seed & blockhash(1));
+        _seed = keccak256(abi.encode(_seed));
     }
 
     function withdrawAllResults() public onlyOwner {
@@ -542,22 +588,21 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function swapDAI_LINK(uint256 amount, uint256 deadline) public onlyOwner {
-        require(
-            _uniswapLINK != address(0),
-            "University: setup uniswap first"
-        );
+        require(_uniswapLINK != address(0), "University: setup uniswap first");
         swapBlind(_uniswapDAI, _uniswapLINK, amount, deadline);
     }
 
     function swapLINK_DAI(uint256 amount, uint256 deadline) public onlyOwner {
-        require(
-            _uniswapLINK != address(0),
-            "University: setup uniswap first"
-        );
+        require(_uniswapLINK != address(0), "University: setup uniswap first");
         swapBlind(_uniswapLINK, _uniswapDAI, amount, deadline);
     }
 
-    function swapBlind(address tokenA, address tokenB, uint256 amount, uint256 deadline) internal {
+    function swapBlind(
+        address tokenA,
+        address tokenB,
+        uint256 amount,
+        uint256 deadline
+    ) internal {
         TransferHelper.safeApprove(tokenA, address(_uniswapRouter), amount);
         address[] memory path = new address[](2);
         path[0] = tokenA;

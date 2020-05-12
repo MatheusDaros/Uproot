@@ -208,8 +208,9 @@ describe("Basic Checks", function() {
 
     describe("Student Register", function() {
         it("Student register success", async function() {
-            const { Student } = await loadFixture(fixture);
+            const { Student, student1 } = await loadFixture(fixture);
             expect(await Student.name()).to.equal(sName);
+            expect(await Student.connect(student1).score()).to.equal(0);
         });
         it("Student register revert", async function() {
             const { University, student1 } = await loadFixture(fixture);
