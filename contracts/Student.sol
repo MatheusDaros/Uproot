@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@nomiclabs/buidler/console.sol";
 import "./gambi/BaseRelayRecipient.sol";
 import "./gambi/GSNTypes.sol";
 import "./interface/IStudent.sol";
@@ -36,7 +37,6 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         _score = 0;
         _university = IUniversity(universityAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        grantRole(READ_SCORE_ROLE, _msgSender());
         grantRole(MODIFY_SCORE_ROLE, universityAddress);
         if (_msgSender() != universityAddress) {
             grantRole(READ_SCORE_ROLE, universityAddress);
@@ -49,6 +49,11 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
 
     function ownerStudent() public view override returns (address) {
         return owner();
+    }
+
+    function transferOwnershipStudent(address newOwner) public override {
+        grantRole(READ_SCORE_ROLE, newOwner);
+        transferOwnership(newOwner);
     }
 
     function changeName(bytes32 val) public onlyOwner {
@@ -87,9 +92,34 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
             _university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
-        grantRole(READ_SCORE_ROLE, classroomAddress);
+        _setupRole(READ_SCORE_ROLE, classroomAddress);
         IClassroom(classroomAddress).studentApply();
         _classroomAddress.push(classroomAddress);
+    }
+
+    function setAnswerSecret(address classroomAddress, bytes32 secret) public onlyOwner{
+        IStudentApplication(viewMyApplication(classroomAddress)).setAnswerSecret(secret);
+    }
+
+    function viewChallengeMaterial(address classroomAddress) public view onlyOwner returns (string memory) {
+        return IStudentApplication(viewMyApplication(classroomAddress)).viewChallengeMaterial();
+    }
+
+    function viewMyApplication(address classroomAddress) public view onlyOwner returns (address) {
+        require(
+            _university.isValidClassroom(classroomAddress),
+            "Student: address is not a valid classroom"
+        );
+        return IClassroom(classroomAddress).viewMyApplication();
+    }
+
+    function viewMyApplicationState(address classroomAddress) public view onlyOwner returns (uint256) {
+        require(
+            _university.isValidClassroom(classroomAddress),
+            "Student: address is not a valid classroom"
+        );
+        address app = IClassroom(classroomAddress).viewMyApplication();
+        return IStudentApplication(app).applicationState();
     }
 
     // not a feature but it is something a teacher would sometimes want to do
@@ -164,10 +194,6 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         uint256 price = IStudentApplication(studentApplication).entryPrice();
         grantRole(READ_SCORE_ROLE, grantsManager);
         IGrantsManager(grantsManager).studentRequestGrant(price, studentApplication);
-    }
-
-    function transferOwnershipStudent(address newOwner) public override {
-        transferOwnership(newOwner);
     }
 
     function acceptRelayedCall(

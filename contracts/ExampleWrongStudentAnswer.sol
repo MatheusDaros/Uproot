@@ -4,7 +4,7 @@ import "./interface/IStudentAnswer.sol";
 import "./interface/IStudentApplication.sol";
 
 
-contract ExampleStudentAnswer is IStudentAnswer, Ownable {
+contract ExampleWrongStudentAnswer is IStudentAnswer, Ownable {
     bytes32 _seedAnswer;
     IStudentApplication _application;
 
@@ -21,10 +21,10 @@ contract ExampleStudentAnswer is IStudentAnswer, Ownable {
         return _seedAnswer;
     }
 
-    function solve(bytes32 secret) public onlyOwner {
-        _application.registerAnswer(secret);
+    function solve(bytes32 secret, bool register) public onlyOwner {
+        if (register) _application.registerAnswer(secret);
         bytes32 hint1 = _application.getHint(0);
         bytes32 hint2 = _application.getHint(1);
-        _seedAnswer = ~(hint1 ^ hint2);
+        _seedAnswer = hint1 ^ hint2;
     }
 }

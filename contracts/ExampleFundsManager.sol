@@ -3,17 +3,22 @@ pragma solidity ^0.6.6;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interface/IUniversity.sol";
+import "./interface/IUniversityFund.sol";
 
 
 contract ExampleFundsManager is Ownable {
     using SafeMath for uint256;
 
     IUniversity public university;
+    IUniversityFund public universityFund;
     uint256 _saveDAIForGrants;
     uint24 _compoundRatio;
 
     constructor(address universityAddress) public {
         university = IUniversity(universityAddress);
+        address universityFundAddress = university.universityFund();
+        require(universityFundAddress != address(0), "ExampleFundsManager: university don't have an attached fund");
+        universityFund = IUniversityFund(universityFund);
         _saveDAIForGrants = 1000 * 1e18;
         _compoundRatio = 0.5 * 1e6;
     }
@@ -36,13 +41,15 @@ contract ExampleFundsManager is Ownable {
 
     function redeem(uint256 val) internal {
         uint256 compoundRedeem = val.mul(_compoundRatio).div(1e6);
-        university.recoverFundsCompound(compoundRedeem);
-        university.recoverFundsAave(val.sub(compoundRedeem));
+        universityFund.recoverFundsCompound(compoundRedeem);
+        universityFund.recoverFundsAave(val.sub(compoundRedeem));
+        university.recoverFunds(val);
     }
 
     function invest(uint256 val) internal {
+        university.applyFunds(val);
         uint256 compoundApply = val.mul(_compoundRatio).div(1e6);
-        university.applyFundsCompound(compoundApply);
-        university.applyFundsAave(val.sub(compoundApply));
+        universityFund.applyFundsCompound(compoundApply);
+        universityFund.applyFundsAave(val.sub(compoundApply));
     }
 }

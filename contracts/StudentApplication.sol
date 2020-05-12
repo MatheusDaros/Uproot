@@ -31,6 +31,7 @@ contract StudentApplication is Ownable, IStudentApplication {
     uint256 _principalReturned;
     uint256 _completionPrize;
     uint256 _entryPrice;
+    bytes32 _answerSecret;
 
     constructor(
         address studentAddress,
@@ -82,9 +83,13 @@ contract StudentApplication is Ownable, IStudentApplication {
             _applicationState == ApplicationState.New,
             "StudentApplication: application is not New"
         );
+        require(
+            daiToken.balanceOf(_msgSender()) >= _entryPrice,
+            "StudentApplication: sender can't pay the entry price"
+        );
         TransferHelper.safeTransferFrom(
             address(daiToken),
-            msg.sender,
+            _msgSender(),
             _classroomAddress,
             _entryPrice
         );
@@ -93,8 +98,8 @@ contract StudentApplication is Ownable, IStudentApplication {
 
     function activate() public override onlyOwner {
         require(
-            _applicationState == ApplicationState.New,
-            "StudentApplication: application is not New"
+            _applicationState == ApplicationState.Ready,
+            "StudentApplication: application is not Ready"
         );
         _applicationState = ApplicationState.Active;
     }
@@ -107,21 +112,41 @@ contract StudentApplication is Ownable, IStudentApplication {
         _applicationState = ApplicationState.Expired;
     }
 
-    function registerAnswer() public override {
+    function setAnswerSecret(bytes32 secret) public override {
+        require(
+            _msgSender() == _studentAddress,
+            "StudentApplication: write permission denied"
+        );
+        require(
+            secret != bytes32(0),
+            "StudentApplication: must set a valid secret"
+        );
+        _answerSecret = secret;
+    }
+
+    function registerAnswer(bytes32 secret) public override {
+        require(
+            _answerSecret != bytes32(0),
+            "StudentApplication: application secret not set"
+        );
+        require(
+            secret == _answerSecret, 
+            "StudentApplication: wrong secret"
+        );
         require(
             _applicationState == ApplicationState.Active,
             "StudentApplication: application is not active"
         );
         IStudentAnswer answer = IStudentAnswer(_msgSender());
         require(
-            answer.getOwner() == _studentAddress,
+            answer.getOwner() == IStudent(_studentAddress).ownerStudent(),
             "StudentApplication: getOwner result is wrong"
         );
         _answer = answer;
         _hasAnswer = true;
     }
 
-    function viewChallengeMaterial() public view returns (string memory) {
+    function viewChallengeMaterial() public view override returns (string memory) {
         require(
             _msgSender() == _studentAddress || _msgSender() == owner(),
             "StudentApplication: read permission denied"
@@ -172,6 +197,22 @@ contract StudentApplication is Ownable, IStudentApplication {
         _completionPrize = prize;
     }
 
+    function viewPrincipalReturned() public view returns (uint256) {
+        require(
+            _msgSender() == _studentAddress || _msgSender() == IStudent(_studentAddress).ownerStudent(),
+            "StudentApplication: read permission denied"
+        );
+        return _principalReturned;
+    }
+
+    function viewPrizeReturned() public view returns (uint256) {
+        require(
+            _msgSender() == _studentAddress || _msgSender() == IStudent(_studentAddress).ownerStudent(),
+            "StudentApplication: read permission denied"
+        );
+        return _completionPrize;
+    }
+
     function withdrawAllResults(address to) public override {
         withdrawResults(to, _principalReturned + _completionPrize);
     }
@@ -185,6 +226,6 @@ contract StudentApplication is Ownable, IStudentApplication {
             applicationState() > 2,
             "StudentApplication: application not finished"
         );
-        TransferHelper.safeTransferFrom(address(daiToken), _classroomAddress, to, val);
+        TransferHelper.safeTransfer(address(daiToken), to, val);
     }
 }

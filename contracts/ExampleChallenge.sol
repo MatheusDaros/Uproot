@@ -29,6 +29,7 @@ contract ExampleChallenge is IClassroomChallenge {
         override
         returns (string memory) 
     {
-        return "TODO: point a link to material hosted at IPFS/SIA using ENS";
+        return "Material";
+        //TODO: point a link to material hosted at IPFS/SIA using ENS
     }
 }

@@ -19,8 +19,9 @@ const classroomFactoryAddress = getAddress('../build/contracts/ClassroomFactory.
 const studentFactoryAddress = getAddress('../build/contracts/StudentFactory.json');
 const studentApplicationFactoryAddress = getAddress('../build/contracts/StudentApplicationFactory.json');
 const daiAddress = getAddress('../build/contracts/ERC20.json');
+const compoundAddress = getAddress('../build/contracts/ERC20.json');
 
 
 module.exports = function(deployer) {
-    deployer.deploy(Migrations, name, cut, studentGSNDeposit, daiAddress, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress);
+    deployer.deploy(Migrations, name, cut, studentGSNDeposit, daiAddress, compoundAddress, relayHubAddress, classroomFactoryAddress, studentFactoryAddress, studentApplicationFactoryAddress);
 };
