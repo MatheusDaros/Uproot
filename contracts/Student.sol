@@ -7,8 +7,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@nomiclabs/buidler/console.sol";
-import "./gambi/BaseRelayRecipient.sol";
-import "./gambi/GSNTypes.sol";
+import "@opengsn/gsn/contracts/utils/GSNTypes.sol";
+import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
 import "./interface/IStudent.sol";
 import "./interface/IClassroom.sol";
 import "./interface/IUniversity.sol";
@@ -229,13 +229,21 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         );
     }
 
+    function _msgSender()
+    internal 
+    view 
+    override(Context, BaseRelayRecipient) 
+    returns (address payable sender){
+        return BaseRelayRecipient._msgSender();
+    }
+
     function acceptRelayedCall(
         GSNTypes.RelayRequest calldata relayRequest,
         bytes calldata,
         uint256
     ) external view returns (bytes memory context) {
         require(
-            _msgSenderGSN() == owner(),
+            _msgSender() == owner(),
             "Student: GSN enabled only for the student"
         );
         return abi.encode(relayRequest.target, 0);

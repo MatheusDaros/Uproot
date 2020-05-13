@@ -7,9 +7,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "@nomiclabs/buidler/console.sol";
-import "./gambi/BaseRelayRecipient.sol";
-import "./gambi/GSNTypes.sol";
-import "./gambi/IRelayHub.sol";
+import "@opengsn/gsn/contracts/interfaces/IRelayHub.sol";
+import "@opengsn/gsn/contracts/utils/GSNTypes.sol";
+import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
 import "./interface/IClassroom.sol";
 import "./interface/IStudent.sol";
 import "./interface/IStudentApplication.sol";
@@ -250,7 +250,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     /// @dev This GSN implementation is buggy
     /// @param sName Name of the Student
     function studentSelfRegisterGSN(bytes32 sName) public {
-        address student = _newStudent(sName, _msgSenderGSN());
+        address student = _newStudent(sName, _msgSender());
         relayHub.depositFor{value:_studentGSNDeposit}(student);
     }
 
@@ -264,7 +264,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         internal
         returns (address) {
         require(
-            _studentApplicationsMapping[_msgSenderGSN()].length == 0,
+            _studentApplicationsMapping[_msgSender()].length == 0,
             "University: student already registered"
         );
         //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
@@ -644,6 +644,15 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             "University: caller doesn't have UNIVERSITY_OVERSEER_ROLE"
         );
         return IGrantsManager(grantsManager).viewAllGrantsForStudent(student);
+    }
+
+    /// @notice GSN specific implementation
+    function _msgSender()
+    internal 
+    view 
+    override(Context, BaseRelayRecipient) 
+    returns (address payable sender){
+        return BaseRelayRecipient._msgSender();
     }
 
     /// @notice GSN specific implementation
