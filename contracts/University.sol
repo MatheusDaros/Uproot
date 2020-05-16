@@ -132,9 +132,19 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         emit LogReceived(msg.sender, msg.value);
     }
 
-    /// @notice Allow taking ETH from the contract
+    /// @notice Withdraw ETH from the contract
     function withdraw(uint256 val) public onlyOwner {
         TransferHelper.safeTransferETH(_msgSender(), val);
+    }
+
+    /// @notice Transfer ETH to the relayHub
+    function refilRelayHub(uint256 val) public onlyOwner {
+        relayHub.depositFor{value:val}(address(this));
+    }
+
+    /// @notice Withdraw ETH to the relayHub
+    function withdrawRelayHub(uint256 val) public onlyOwner {
+        relayHub.withdraw(val, address(this));
     }
 
     /// @notice Records the name and address of every new classroom created
@@ -153,6 +163,27 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     event LogReturn(address, uint256);
     /// @notice Records revenues received and the address of the souce
     event LogRevenue(address, uint256);
+
+    /// @notice Update external contracts addresses
+    /// @param daiAddress Adress of contract in the network
+    /// @param relayHubAddress Adress of contract in the network
+    /// @param classroomFactoryAddress Adress of contract in the network
+    /// @param studentFactoryAddress Adress of contract in the network
+    /// @param studentApplicationFactoryAddress Adress of contract in the network
+    function updateAddresses(
+        address daiAddress,
+        address compoundDai,
+        address relayHubAddress,
+        address classroomFactoryAddress,
+        address studentFactoryAddress,
+        address studentApplicationFactoryAddress) public onlyOwner{
+        daiToken = daiAddress == address(0) ? daiToken : daiAddress;
+        cDAI = compoundDai == address(0) ? cDAI : compoundDai;
+        relayHub = relayHubAddress == address(0) ? relayHub : IRelayHub(relayHubAddress);
+        _classroomFactory = classroomFactoryAddress == address(0) ? _classroomFactory : classroomFactoryAddress;
+        _studentFactory = studentFactoryAddress == address(0) ? _studentFactory : studentFactoryAddress;
+        _studentApplicationFactoryAddress = studentApplicationFactoryAddress == address(0) ? _studentApplicationFactoryAddress : studentApplicationFactoryAddress;
+    }
 
     /// @notice Attach the University Fund after creation
     /// @param addr New value

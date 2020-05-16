@@ -25,6 +25,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     bool public openForApplication;
     bool public courseFinished;
     bool public classroomActive;
+    uint256 public startDate;
     bool _timestampAlarm;
     address[] _studentApplications;
     address[] _validStudentApplications;
@@ -368,6 +369,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         _studentApplications = new address[](0);
         if (_validStudentApplications.length == 0) return;
         classroomActive = true;
+        startDate = block.timestamp;
         if (_____REMOVE_BEFORE_LAUNCH______MOCK) _timestampAlarm = true;
         else _setAlarm();
     }
