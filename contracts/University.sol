@@ -38,10 +38,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     bytes32 public constant GRANTS_MANAGER_ROLE = keccak256(
         "GRANTS_MANAGER_ROLE"
     );
-    // READ_STUDENT_LIST_ROLE allow reading students list
-    bytes32 public constant READ_STUDENT_LIST_ROLE = keccak256(
-        "READ_STUDENT_LIST_ROLE"
-    );
     /// STUDENT_IDENTITY_ROLE allow asking for grants and requesting a classroom from a successful application
     bytes32 public constant STUDENT_IDENTITY_ROLE = keccak256(
         "STUDENT_IDENTITY_ROLE"
@@ -68,6 +64,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     address[] _classList;
     // Mapping of each student's applications
     mapping(address => address[]) _studentApplicationsMapping;
+    // Mapping of each student(owner) to student(smart contract)
+    mapping(address => address) _ownerToStudent;
     // Mapping of every donor and donations
     mapping(address => uint256) public donators;
     // Total amount of donations received so far
@@ -120,7 +118,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         cut = cut_;
         _studentGSNDeposit = studentGSNDeposit;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        grantRole(READ_STUDENT_LIST_ROLE, _msgSender());
         grantRole(CLASSLIST_ADMIN_ROLE, _msgSender());
         daiToken = daiAddress;
         cDAI = compoundDai;
@@ -210,11 +207,16 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
 
     /// @return true if the student is registered in this University 
     function studentIsRegistered(address student) public view override returns (bool) {
-        require(
-            hasRole(READ_STUDENT_LIST_ROLE, _msgSender()),
-            "University: caller doesn't have READ_STUDENT_LIST_ROLE"
-        );
         return hasRole(STUDENT_IDENTITY_ROLE, student);
+    }
+
+    /// @return address of this student
+    function myStudentAddress() public view returns (address) {
+        require(
+            _ownerToStudent[_msgSender()] != address(0),
+            "University: caller doesn't have a student registry"
+        );
+        return _ownerToStudent[_msgSender()];
     }
 
     /// @return the address of the application of a Student
@@ -264,12 +266,11 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         internal
         returns (address) {
         require(
-            _studentApplicationsMapping[_msgSender()].length == 0,
+            _ownerToStudent[caller] == address(0),
             "University: student already registered"
         );
-        //Gambiarra: Push address(0) in the mapping to mark that student as registered in the university
-        _studentApplicationsMapping[caller].push(address(0));
         address student = IStudentFactory(_studentFactory).newStudent(sName, address(this));
+        _ownerToStudent[caller] = student;
         IStudent(student).transferOwnershipStudent(caller);
         _setupRole(STUDENT_IDENTITY_ROLE, student);
         emit LogNewStudent(name, student);
@@ -339,7 +340,6 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IClassroom(classroom).transferOwnershipClassroom(owner);
         address classroomAddr = address(classroom);
         _classList.push(classroomAddr);
-        _setupRole(READ_STUDENT_LIST_ROLE, classroomAddr);
         _setupRole(CLASSROOM_PROFESSOR_ROLE, classroomAddr);
         emit LogNewClassroom(cName, classroomAddr);
         return classroomAddr;
