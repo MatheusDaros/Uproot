@@ -9,4 +9,6 @@ interface IClassroom {
     function studentApply() external;
 
     function viewMyApplication() external view returns (address);
+
+    function ownerClassroom() external view returns (address);
 }

@@ -166,6 +166,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         transferOwnership(newOwner);
     }
 
+    function ownerClassroom() public view override returns (address) {
+        return owner();
+    }
+
     function changeName(bytes32 val) public onlyOwner {
         name = val;
         emit LogChangeName(name);

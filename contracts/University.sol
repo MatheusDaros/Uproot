@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
-import "@nomiclabs/buidler/console.sol";
 import "@opengsn/gsn/contracts/interfaces/IRelayHub.sol";
 import "@opengsn/gsn/contracts/utils/GSNTypes.sol";
 import "@opengsn/gsn/contracts/BaseRelayRecipient.sol";
@@ -18,6 +17,7 @@ import "./interface/IStudentFactory.sol";
 import "./interface/IUniversity.sol";
 import "./interface/IUniversityFund.sol";
 import "./interface/IGrantsManager.sol";
+import "./interface/ENSInterfaces.sol";
 import "./MyUtils.sol";
 
 //TODO: Natspec Document ENVERYTHING
@@ -89,15 +89,20 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     IRelayHub public relayHub;
 
     //Factory
-    address _classroomFactory;
-    address _studentFactory;
-    address _studentApplicationFactoryAddress;
+    address public classroomFactory;
+    address public studentFactory;
+    address public studentApplicationFactory;
+
+    //ENS
+    address public ensContract;
+    address public ensTestRegistrar; //change on prod
+    address public ensPublicResolver;
+    address public ensReverseRegistrar;
 
     /// @notice Constructor setup the basic variables
     /// @dev Not all variables can be defined in this constructor because the limitation of the stack size
     /// @param name_ Given name for the university
     /// @param cut_ Cut from professor payments, in PPM
-    /// @param studentGSNDeposit Ammount of ETH to give relayer hub of students for UX reasons, in WEI
     /// @param daiAddress Adress of contract in the network
     /// @param relayHubAddress Adress of contract in the network
     /// @param classroomFactoryAddress Adress of contract in the network
@@ -106,25 +111,32 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     constructor(
         bytes32 name_,
         uint24 cut_,
-        uint256 studentGSNDeposit,
         address daiAddress,
         address compoundDai,
         address relayHubAddress,
         address classroomFactoryAddress,
         address studentFactoryAddress,
-        address studentApplicationFactoryAddress
+        address studentApplicationFactoryAddress,
+        address ensContractAddress,
+        address ensTestRegistrarAddress,
+        address ensPublicResolverAddress,
+        address ensReverseRegistrarAddress
     ) public {
         name = name_;
         cut = cut_;
-        _studentGSNDeposit = studentGSNDeposit;
+        _studentGSNDeposit = 1e15;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(CLASSLIST_ADMIN_ROLE, _msgSender());
         daiToken = daiAddress;
         cDAI = compoundDai;
         relayHub = IRelayHub(relayHubAddress);
-        _classroomFactory = classroomFactoryAddress;
-        _studentFactory = studentFactoryAddress;
-        _studentApplicationFactoryAddress = studentApplicationFactoryAddress;
+        classroomFactory = classroomFactoryAddress;
+        studentFactory = studentFactoryAddress;
+        studentApplicationFactory = studentApplicationFactoryAddress;
+        ensContract = ensContractAddress;
+        ensTestRegistrar = ensTestRegistrarAddress;
+        ensPublicResolver = ensPublicResolverAddress;
+        ensReverseRegistrar = ensReverseRegistrarAddress;
     }
 
     /// @notice Allow receiving ETH
@@ -165,25 +177,38 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     event LogRevenue(address, uint256);
 
     /// @notice Update external contracts addresses
-    /// @param daiAddress Adress of contract in the network
-    /// @param relayHubAddress Adress of contract in the network
-    /// @param classroomFactoryAddress Adress of contract in the network
-    /// @param studentFactoryAddress Adress of contract in the network
-    /// @param studentApplicationFactoryAddress Adress of contract in the network
+    /// @param daiAddress Address of contract in the network
+    /// @param relayHubAddress Address of contract in the network
+    /// @param classroomFactoryAddress Address of contract in the network
+    /// @param studentFactoryAddress Address of contract in the network
+    /// @param studentApplicationFactoryAddress Address of contract in the network
+    /// @param ensTestRegistrarAddress Address of contract in the network    
+    /// @param ensPublicResolverAddress Address of contract in the network
+    /// @param ensReverseRegistrarAddress Address of contract in the network    
     function updateAddresses(
         address daiAddress,
         address compoundDai,
         address relayHubAddress,
         address classroomFactoryAddress,
         address studentFactoryAddress,
-        address studentApplicationFactoryAddress) public onlyOwner{
+        address studentApplicationFactoryAddress,
+        address ensContractAddress,
+        address ensTestRegistrarAddress,
+        address ensPublicResolverAddress,
+        address ensReverseRegistrarAddress) public onlyOwner{
         daiToken = daiAddress == address(0) ? daiToken : daiAddress;
         cDAI = compoundDai == address(0) ? cDAI : compoundDai;
         relayHub = relayHubAddress == address(0) ? relayHub : IRelayHub(relayHubAddress);
-        _classroomFactory = classroomFactoryAddress == address(0) ? _classroomFactory : classroomFactoryAddress;
-        _studentFactory = studentFactoryAddress == address(0) ? _studentFactory : studentFactoryAddress;
-        _studentApplicationFactoryAddress = studentApplicationFactoryAddress == address(0) ? _studentApplicationFactoryAddress : studentApplicationFactoryAddress;
+        classroomFactory = classroomFactoryAddress == address(0) ? classroomFactory : classroomFactoryAddress;
+        studentFactory = studentFactoryAddress == address(0) ? studentFactory : studentFactoryAddress;
+        studentApplicationFactory = studentApplicationFactoryAddress == address(0) ? studentApplicationFactory : studentApplicationFactoryAddress;
+        ensContract = ensContractAddress == address(0) ? ensContract : ensContractAddress;
+        ensTestRegistrar = ensTestRegistrarAddress == address(0) ? ensTestRegistrar : ensTestRegistrarAddress;
+        ensPublicResolver = ensPublicResolverAddress == address(0) ? ensPublicResolver : ensPublicResolverAddress;
+        ensReverseRegistrar = ensReverseRegistrarAddress == address(0) ? ensReverseRegistrar : ensReverseRegistrarAddress;
     }
+
+    // Parameters setup
 
     /// @notice Attach the University Fund after creation
     /// @param addr New value
@@ -214,6 +239,68 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
     function changeStudentGSNDeposit(uint256 val) public onlyOwner {
         _studentGSNDeposit = val;
     }
+
+    // ENS operations
+
+    function registerInRegistrar(bytes32 label, address _owner) public onlyOwner {
+        IRegistrar(ensTestRegistrar).register(label, _owner);
+    }
+
+    function registerInReverseRegistrar(string memory _name) public onlyOwner {
+        IReverseRegistrar(ensReverseRegistrar).setName(_name);
+    }
+
+    function setResolver(bytes32 node, address resolver) public onlyOwner {
+        IENS(ensContract).setResolver(node, resolver);
+    }
+
+    function setAddressInResolver(bytes32 node, address val) public onlyOwner {
+        setAddressInResolver(node, val, ensPublicResolver);
+    }
+
+    function setAddressInResolver(bytes32 node, address val, address resolver) public onlyOwner {
+        IResolver(resolver).setAddr(node, val);
+    }
+
+    function setTextInResolver(bytes32 node, string memory key, string memory val) public onlyOwner {
+        setTextInResolver(node, key, val, ensPublicResolver);
+    }
+
+    function setTextInResolver(bytes32 node, string memory key, string memory val, address resolver) public onlyOwner {
+        IResolver(resolver).setText(node, key, val);
+    }
+
+    function setSubnodeRecord(bytes32 node, bytes32 label, address owner, address resolver, uint64 ttl) public onlyOwner {
+        IENS(ensContract).setSubnodeRecord(node, label, owner, resolver, ttl);
+    }
+
+    function claimSubnodeClassroom(bytes32 node, bytes32 label, address owner, address resolver, uint64 ttl, address classroom) public {
+        require(
+            owner == _msgSender(),
+            "University: delegated claim not allowed"
+        );
+        require(
+            IClassroom(classroom).ownerClassroom() == _msgSender(),
+            "University: caller is not owner of this classroom"
+        );
+        setSubnodeRecord(node, label, owner, resolver, ttl);
+    }
+
+    function claimSubnodeStudent(bytes32 node, bytes32 label, address owner, address resolver, uint64 ttl, address student) public {
+        require(
+            owner == _msgSender(),
+            "University: delegated claim not allowed"
+        );
+        require(
+            IStudent(student).ownerStudent() == _msgSender(),
+            "University: caller is not owner of this student registry"
+        );
+        setSubnodeRecord(node, label, owner, resolver, ttl);
+    }
+    
+    // Contract Logic
+
+    // Public view functions 
 
     /// @return the ammount of DAI able for investing
     /// @dev ETH is not considered as part of investment funds
@@ -279,6 +366,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return _studentApplicationsMapping[addr];
     }
 
+    // Student registry logic
+
     /// @notice Self-register function where an address can create an instance of a Student in this University
     /// @dev This GSN implementation is buggy
     /// @param sName Name of the Student
@@ -300,13 +389,15 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             _ownerToStudent[caller] == address(0),
             "University: student already registered"
         );
-        address student = IStudentFactory(_studentFactory).newStudent(sName, address(this));
+        address student = IStudentFactory(studentFactory).newStudent(sName, address(this));
         _ownerToStudent[caller] = student;
         IStudent(student).transferOwnershipStudent(caller);
         _setupRole(STUDENT_IDENTITY_ROLE, student);
         emit LogNewStudent(name, student);
         return student;
     }
+
+    // Classroom operation logic
 
     /// @notice Register function where an Admin can can create an instance of a Classroom in this University
     /// @param owner Address to own this classroom
@@ -355,7 +446,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         uint256 duration,
         address challengeAddress
     ) internal returns (address) {
-        address classroom = IClassroomFactory(_classroomFactory).newClassroom(
+        address classroom = IClassroomFactory(classroomFactory).newClassroom(
             cName,
             cCut,
             cPCut,
@@ -366,7 +457,7 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
             challengeAddress,
             daiToken,
             cDAI,
-            _studentApplicationFactoryAddress
+            studentApplicationFactory
         );
         IClassroom(classroom).transferOwnershipClassroom(owner);
         address classroomAddr = address(classroom);
@@ -458,6 +549,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         return false;
     }
 
+    // Student score management
+
     /// @notice Increase a Student's score upon successful application
     /// @param student Address of the Student
     /// @param val Value to be added
@@ -479,6 +572,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         IStudent(student).subScore(val);
     }
+
+    // Funds asset value management 
 
     /// @notice Allow managing the university Funds. Must be called from an appointed Funds Manager
     function applyFunds(uint256 val) public override {
@@ -556,6 +651,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         IUniversityFund(universityFund).withdraw(val);
     }
 
+    //Funds setup
+
     /// @notice Grants role to account inside University Fund
     function grantRoleFund(bytes32 role, address account) public {
         require(
@@ -573,6 +670,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         IUniversityFund(universityFund).revokeRoleFund(role, account);
     }
+
+    // Funds value quotas management
 
     /// @notice Allow managing how much Funds Manager can draw from funds to cover operational expenses. Must be called from the university admin
     /// @param val Value to increase
@@ -649,6 +748,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         accountReturns(val);
     }
 
+    // Overseer actions
+
     /// @notice Allow an appointed Overseer to inspect all students that received grants by a specific Grants Manager
     /// @param grantsManager Address of the Grants Manager
     /// @return array of Students addresses
@@ -676,6 +777,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         return IGrantsManager(grantsManager).viewAllGrantsForStudent(student);
     }
+
+    // GSN implementation
 
     /// @notice GSN specific implementation
     function _msgSender()
@@ -710,6 +813,8 @@ contract University is Ownable, AccessControl, BaseRelayRecipient, IUniversity {
         );
         relayHub.depositFor{value:val}(address(this));
     }
+
+    // Donations feature
 
     /// @notice Allow donating DAI to the University funds. Require allowing the University first
     /// @param donation amount of DAI to donate, in decimals
