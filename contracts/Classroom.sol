@@ -49,27 +49,27 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     address public cDAI;
 
     //Factory
-    IStudentApplicationFactory _studentApplicationFactory;
+    IStudentApplicationFactory public studentApplicationFactory;
 
     //Chainlink config
-    address _oracleRandom;
-    bytes32 _requestIdRandom;
-    uint256 _oraclePaymentRandom;
-    address _oracleTimestamp;
-    bytes32 _requestIdTimestamp;
-    uint256 _oraclePaymentTimestamp;
-    address _linkToken;
+    address public oracleRandom;
+    bytes32 public requestIdRandom;
+    uint256 public oraclePaymentRandom;
+    address public oracleTimestamp;
+    bytes32 public requestIdTimestamp;
+    uint256 public oraclePaymentTimestamp;
+    address public linkToken;
 
     //Uniswap Config
-    address _uniswapDAI;
-    address _uniswapLINK;
-    IUniswapV2Router01 _uniswapRouter;
+    address public uniswapDAI;
+    address public uniswapLINK;
+    IUniswapV2Router01 public uniswapRouter;
 
     //Aave Config
-    ILendingPoolAddressesProvider _aaveProvider;
-    ILendingPool _aaveLendingPool;
-    address _aaveLendingPoolCore;
-    address _aTokenDAI;
+    ILendingPoolAddressesProvider public aaveProvider;
+    ILendingPool public aaveLendingPool;
+    address public aaveLendingPoolCore;
+    address public aTokenDAI;
 
     constructor(
         bytes32 name_,
@@ -97,7 +97,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         classroomActive = false;
         daiToken = daiAddress;
         cDAI = compoundDAIAddress;
-        _studentApplicationFactory = IStudentApplicationFactory(
+        studentApplicationFactory = IStudentApplicationFactory(
             studentApplicationFactoryAddress
         );
     }
@@ -115,50 +115,50 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     // @dev "Stack too deep" error if done in the constructor
     function configureOracles(
-        address oracleRandom,
-        bytes32 requestIdRandom,
-        uint256 oraclePaymentRandom,
-        address oracleTimestamp,
-        bytes32 requestIdTimestamp,
-        uint256 oraclePaymentTimestamp,
-        address linkToken,
+        address oracleRandom_,
+        bytes32 requestIdRandom_,
+        uint256 oraclePaymentRandom_,
+        address oracleTimestamp_,
+        bytes32 requestIdTimestamp_,
+        uint256 oraclePaymentTimestamp_,
+        address linkToken_,
         bool _____REMOVE_BEFORE_LAUNCH______MOCK
     ) public onlyOwner {
-        _oracleRandom = oracleRandom;
-        _requestIdRandom = requestIdRandom;
-        _oraclePaymentRandom = oraclePaymentRandom;
-        _oracleTimestamp = oracleTimestamp;
-        _requestIdTimestamp = requestIdTimestamp;
-        _oraclePaymentTimestamp = oraclePaymentTimestamp;
-        _linkToken = linkToken;
+        oracleRandom = oracleRandom_;
+        requestIdRandom = requestIdRandom_;
+        oraclePaymentRandom = oraclePaymentRandom_;
+        oracleTimestamp = oracleTimestamp_;
+        requestIdTimestamp = requestIdTimestamp_;
+        oraclePaymentTimestamp = oraclePaymentTimestamp_;
+        linkToken = linkToken_;
         require(
-            LinkTokenInterface(_linkToken).balanceOf(address(this)) >=
-                _oraclePaymentRandom,
+            LinkTokenInterface(linkToken).balanceOf(address(this)) >=
+                oraclePaymentRandom,
             "Classroom: not enough Link tokens"
         );
         if (!_____REMOVE_BEFORE_LAUNCH______MOCK) _generateSeed();
     }
 
     function configureUniswap(
-        address uniswapDAI,
-        address uniswapLINK,
-        address uniswapRouter
+        address uniswapDAI_,
+        address uniswapLINK_,
+        address uniswapRouter_
     ) public onlyOwner {
-        _uniswapDAI = uniswapDAI;
-        _uniswapLINK = uniswapLINK;
-        _uniswapRouter = IUniswapV2Router01(uniswapRouter);
+        uniswapDAI = uniswapDAI_;
+        uniswapLINK = uniswapLINK_;
+        uniswapRouter = IUniswapV2Router01(uniswapRouter_);
     }
 
     function configureAave(address lendingPoolAddressesProvider)
         public
         onlyOwner
     {
-        _aaveProvider = ILendingPoolAddressesProvider(
+        aaveProvider = ILendingPoolAddressesProvider(
             lendingPoolAddressesProvider
         );
-        _aaveLendingPoolCore = _aaveProvider.getLendingPoolCore();
-        _aaveLendingPool = ILendingPool(_aaveProvider.getLendingPool());
-        _aTokenDAI = ILendingPoolCore(_aaveLendingPoolCore)
+        aaveLendingPoolCore = aaveProvider.getLendingPoolCore();
+        aaveLendingPool = ILendingPool(aaveProvider.getLendingPool());
+        aTokenDAI = ILendingPoolCore(aaveLendingPoolCore)
             .getReserveATokenAddress(daiToken);
     }
 
@@ -234,10 +234,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function openApplications() public onlyOwner {
-        require(_oracleRandom != address(0), "Classroom: setup oracles first");
-        require(_uniswapDAI != address(0), "Classroom: setup Uniswap first");
+        require(oracleRandom != address(0), "Classroom: setup oracles first");
+        require(uniswapDAI != address(0), "Classroom: setup Uniswap first");
         require(
-            _aaveLendingPoolCore != address(0),
+            aaveLendingPoolCore != address(0),
             "Classroom: setup Aave first"
         );
         require(
@@ -249,8 +249,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             "Classroom: students list not empty"
         );
         require(
-            LinkTokenInterface(_linkToken).balanceOf(address(this)) >=
-                _oraclePaymentTimestamp,
+            LinkTokenInterface(linkToken).balanceOf(address(this)) >=
+                oraclePaymentTimestamp,
             "Classroom: not enough Link tokens"
         );
         openForApplication = true;
@@ -284,10 +284,10 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function applyFundsAave(uint256 val) internal {
         TransferHelper.safeApprove(
             address(daiToken),
-            _aaveLendingPoolCore,
+            aaveLendingPoolCore,
             val
         );
-        _aaveLendingPool.deposit(address(daiToken), val, 0);
+        aaveLendingPool.deposit(address(daiToken), val, 0);
     }
 
     function studentApply() public override {
@@ -313,7 +313,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         internal
         returns (address)
     {
-        address newApplication = _studentApplicationFactory
+        address newApplication = studentApplicationFactory
             .newStudentApplication(
             student,
             address(this),
@@ -414,8 +414,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     function _recoverInvestment() internal {
         uint256 balanceCompound = CERC20(cDAI).balanceOf(address(this));
         CERC20(cDAI).redeem(balanceCompound);
-        uint256 balanceAave = aToken(_aTokenDAI).balanceOf(address(this));
-        aToken(_aTokenDAI).redeem(balanceAave);
+        uint256 balanceAave = aToken(aTokenDAI).balanceOf(address(this));
+        aToken(aTokenDAI).redeem(balanceAave);
     }
 
     function processResults() public onlyOwner {
@@ -594,13 +594,13 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function swapDAI_LINK(uint256 amount, uint256 deadline) public onlyOwner {
-        require(_uniswapLINK != address(0), "University: setup uniswap first");
-        swapBlind(_uniswapDAI, _uniswapLINK, amount, deadline);
+        require(uniswapLINK != address(0), "University: setup uniswap first");
+        swapBlind(uniswapDAI, uniswapLINK, amount, deadline);
     }
 
     function swapLINK_DAI(uint256 amount, uint256 deadline) public onlyOwner {
-        require(_uniswapLINK != address(0), "University: setup uniswap first");
-        swapBlind(_uniswapLINK, _uniswapDAI, amount, deadline);
+        require(uniswapLINK != address(0), "University: setup uniswap first");
+        swapBlind(uniswapLINK, uniswapDAI, amount, deadline);
     }
 
     function swapBlind(
@@ -609,11 +609,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         uint256 amount,
         uint256 deadline
     ) internal {
-        TransferHelper.safeApprove(tokenA, address(_uniswapRouter), amount);
+        TransferHelper.safeApprove(tokenA, address(uniswapRouter), amount);
         address[] memory path = new address[](2);
         path[0] = tokenA;
         path[1] = tokenB;
-        _uniswapRouter.swapExactTokensForTokens(
+        uniswapRouter.swapExactTokensForTokens(
             amount,
             0,
             path,
@@ -624,11 +624,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     function _generateSeed() internal {
         Chainlink.Request memory req = buildChainlinkRequest(
-            _requestIdRandom,
+            requestIdRandom,
             address(this),
             this.fulfillGenerateSeed.selector
         );
-        sendChainlinkRequestTo(_oracleRandom, req, _oraclePaymentRandom);
+        sendChainlinkRequestTo(oracleRandom, req, oraclePaymentRandom);
     }
 
     function fulfillGenerateSeed(bytes32 _requestId, uint256 data)
@@ -640,12 +640,12 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
 
     function _setAlarm() internal {
         Chainlink.Request memory req = buildChainlinkRequest(
-            _requestIdTimestamp,
+            requestIdTimestamp,
             address(this),
             this.fulfillGetTimestamp.selector
         );
         req.addUint("until", now + duration);
-        sendChainlinkRequestTo(_oracleTimestamp, req, _oraclePaymentTimestamp);
+        sendChainlinkRequestTo(oracleTimestamp, req, oraclePaymentTimestamp);
     }
 
     function fulfillGetTimestamp(bytes32 _requestId)

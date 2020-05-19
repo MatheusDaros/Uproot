@@ -26,8 +26,8 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
     bytes32 public constant MODIFY_SCORE_ROLE = keccak256("MODIFY_SCORE_ROLE");
 
     bytes32 public name;
-    IUniversity _university;
-    address[] _classroomAddress;
+    IUniversity public university;
+    address[] public classroomAddresses;
     int32 _score;
 
     IERC20 public daiToken;
@@ -35,7 +35,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
     constructor(bytes32 _name, address payable universityAddress) public {
         name = _name;
         _score = 0;
-        _university = IUniversity(universityAddress);
+        university = IUniversity(universityAddress);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         grantRole(MODIFY_SCORE_ROLE, universityAddress);
         if (_msgSender() != universityAddress) {
@@ -89,12 +89,12 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
 
     function applyToClassroom(address classroomAddress) public onlyOwner {
         require(
-            _university.isValidClassroom(classroomAddress),
+            university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
         _setupRole(READ_SCORE_ROLE, classroomAddress);
         IClassroom(classroomAddress).studentApply();
-        _classroomAddress.push(classroomAddress);
+        classroomAddresses.push(classroomAddress);
     }
 
     function setAnswerSecret(address classroomAddress, bytes32 secret)
@@ -123,7 +123,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         returns (address)
     {
         require(
-            _university.isValidClassroom(classroomAddress),
+            university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
         return IClassroom(classroomAddress).viewMyApplication();
@@ -136,7 +136,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         returns (uint256)
     {
         require(
-            _university.isValidClassroom(classroomAddress),
+            university.isValidClassroom(classroomAddress),
             "Student: address is not a valid classroom"
         );
         address app = IClassroom(classroomAddress).viewMyApplication();
@@ -145,9 +145,9 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
 
     // not a feature but it is something a teacher would sometimes want to do
     function removeFromMyClassroom() public {
-        for (uint256 i = 0; i < _classroomAddress.length; i++) {
-            if (_classroomAddress[i] == _msgSender())
-                _classroomAddress[i] = address(0);
+        for (uint256 i = 0; i < classroomAddresses.length; i++) {
+            if (classroomAddresses[i] == _msgSender())
+                classroomAddresses[i] = address(0);
         }
     }
 
@@ -198,7 +198,7 @@ contract Student is Ownable, AccessControl, BaseRelayRecipient, IStudent {
         uint256 duration,
         address challenge
     ) public onlyOwner {
-        _university.studentRequestClassroom(
+        university.studentRequestClassroom(
             applicationAddr,
             cName,
             cCut,

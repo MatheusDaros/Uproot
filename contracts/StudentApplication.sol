@@ -25,7 +25,7 @@ contract StudentApplication is Ownable, IStudentApplication {
     IStudentAnswer _answer;
     ApplicationState _applicationState;
     address _studentAddress;
-    address _classroomAddress;
+    address public classroomAddress;
     bytes32 _seed;
     bool _hasAnswer;
     uint256 _principalReturned;
@@ -35,19 +35,19 @@ contract StudentApplication is Ownable, IStudentApplication {
 
     constructor(
         address studentAddress,
-        address classroomAddress,
+        address classroomAddress_,
         address daiAddress,
         address challengeAddress,
         bytes32 seed
     ) public {
         _applicationState = ApplicationState.New;
         _studentAddress = studentAddress;
-        _classroomAddress = classroomAddress;
+        classroomAddress = classroomAddress_;
         _hasAnswer = false;
         daiToken = IERC20(daiAddress);
         _seed = seed;
         _challenge = IClassroomChallenge(challengeAddress);
-        _entryPrice = IClassroom(_classroomAddress).entryPrice();
+        _entryPrice = IClassroom(classroomAddress).entryPrice();
     }
 
     function studentAddress() public view override returns (address) {
@@ -94,7 +94,7 @@ contract StudentApplication is Ownable, IStudentApplication {
         TransferHelper.safeTransferFrom(
             address(daiToken),
             _msgSender(),
-            _classroomAddress,
+            classroomAddress,
             _entryPrice
         );
         _applicationState = ApplicationState.Ready;

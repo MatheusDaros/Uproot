@@ -59,6 +59,10 @@ const placeHolderAddress = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6"; //Rando
 const uniswapDAI = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6";
 const uniswapLINK = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6";
 const uniswapRouter = "0xD115BFFAbbdd893A6f7ceA402e7338643Ced44a6";
+const ensContractAddress = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"; //same on every network
+const ensTestRegistrarAddress = "0x09B5bd82f3351A4c8437FC6D7772A9E6cd5D25A1";
+const ensPublicResolverAddress = "0x42D63ae25990889E35F215bC95884039Ba354115";
+const ensReverseResolverAddres = "0x6F628b68b30Dc3c17f345c9dbBb1E483c2b7aE5c";
 
 describe("Class process checks", function() {
     var DAI_ERC20,
@@ -135,13 +139,16 @@ describe("Class process checks", function() {
             University = await deployContract(ownerAddress, Build_University, [
                 name,
                 cut,
-                studentGSNDeposit,
                 DAI_ERC20.address,
                 DAI_CERC20.address,
                 RelayHub.address,
                 ClassroomFactory.address,
                 StudentFactory.address,
                 StudentApplicationFactory.address,
+                ensContractAddress,
+                ensTestRegistrarAddress,
+                ensPublicResolverAddress,
+                ensReverseResolverAddres,
             ]);
             await University.deployed();
             await University.connect(student1).studentSelfRegister(sName);

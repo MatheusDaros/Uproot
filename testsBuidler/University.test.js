@@ -24,6 +24,10 @@ require("dotenv").config();
 const name = ethers.utils.formatBytes32String(process.env.UNIVERSITY_NAME);
 const cut = process.env.UNIVERSITY_CUT;
 const studentGSNDeposit = process.env.UNIVERSITY_GSNDEPOSIT;
+const ensContractAddress = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"; //same on every network
+const ensTestRegistrarAddress = "0x09B5bd82f3351A4c8437FC6D7772A9E6cd5D25A1";
+const ensPublicResolverAddress = "0x42D63ae25990889E35F215bC95884039Ba354115";
+const ensReverseResolverAddres = "0x6F628b68b30Dc3c17f345c9dbBb1E483c2b7aE5c";
 
 //Student Params
 const sName = ethers.utils.formatBytes32String("Flavio Neto");
@@ -69,13 +73,16 @@ describe("Basic checks", function() {
             Build_University, [
                 name,
                 cut,
-                studentGSNDeposit,
                 DAI_ERC20.address,
                 DAI_CERC20.address,
                 RelayHub.address,
                 ClassroomFactory.address,
                 StudentFactory.address,
                 StudentApplicationFactory.address,
+                ensContractAddress,
+                ensTestRegistrarAddress,
+                ensPublicResolverAddress,
+                ensReverseResolverAddres,
             ], {
                 gasLimit: 6000000,
             }
@@ -169,16 +176,6 @@ describe("Basic checks", function() {
             expect(
                 await University.hasRole(DEFAULT_ADMIN_ROLE, ownerAddress.address)
             ).to.equal(true);
-        });
-
-        it("must save READ STUDENT LIST ROLE at deploy", async function() {
-            const { University, ownerAddress } = await loadFixture(fixture);
-            const ROLE = ethers.utils.solidityKeccak256(
-                ["string"], ["READ_STUDENT_LIST_ROLE"]
-            );
-            expect(await University.hasRole(ROLE, ownerAddress.address)).to.equal(
-                true
-            );
         });
     });
 
