@@ -130,6 +130,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         requestIdTimestamp = requestIdTimestamp_;
         oraclePaymentTimestamp = oraclePaymentTimestamp_;
         linkToken = linkToken_;
+        setPublicChainlinkToken();
         require(
             LinkTokenInterface(linkToken).balanceOf(address(this)) >=
                 oraclePaymentRandom,
