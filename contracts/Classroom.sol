@@ -121,7 +121,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         address oracleTimestamp_,
         bytes32 requestIdTimestamp_,
         uint256 oraclePaymentTimestamp_,
-        address linkToken_
+        address linkToken_,
+        bool generateSeed
     ) public onlyOwner {
         oracleRandom = oracleRandom_;
         requestIdRandom = requestIdRandom_;
@@ -136,7 +137,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
                 oraclePaymentRandom,
             "Classroom: not enough Link tokens"
         );
-        _generateSeed();
+        if (generateSeed) _generateSeed();
+        else _seed = blockhash(0);
     }
 
     function configureUniswap(
@@ -359,7 +361,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         }
     }
 
-    function beginCourse()
+    function beginCourse(bool setAlatm)
         public
         onlyOwner
     {
@@ -374,7 +376,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         if (_validStudentApplications.length == 0) return;
         classroomActive = true;
         startDate = block.timestamp;
-        _setAlarm();
+        if (setAlatm) _setAlarm();
+        else _timestampAlarm = true;
     }
 
     function checkApplications() internal {
