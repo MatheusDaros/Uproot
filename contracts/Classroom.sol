@@ -588,6 +588,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function withdrawAllResults() public onlyOwner {
+        //TODO: chekc if course is finished
         IERC20(daiToken).transferFrom(
             address(this),
             owner(),
