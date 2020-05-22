@@ -279,11 +279,13 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function applyFundsCompound(uint256 val) internal {
+        if (val == 0) return;
         TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
         CERC20(cDAI).mint(val);
     }
 
     function applyFundsAave(uint256 val) internal {
+        if (val == 0) return;
         TransferHelper.safeApprove(
             address(daiToken),
             aaveLendingPoolCore,
@@ -588,12 +590,8 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function withdrawAllResults() public onlyOwner {
-        //TODO: chekc if course is finished
-        IERC20(daiToken).transferFrom(
-            address(this),
-            owner(),
-            IERC20(daiToken).balanceOf(address(this))
-        );
+        require(!isClassroomEmpty(), "Can't withdraw with classroom full");
+        TransferHelper.safeTransfer(daiToken, owner(), IERC20(daiToken).balanceOf(address(this)));
     }
 
     function swapDAI_LINK(uint256 amount, uint256 deadline) public onlyOwner {
