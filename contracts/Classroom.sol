@@ -590,7 +590,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
     }
 
     function withdrawAllResults() public onlyOwner {
-        require(!isClassroomEmpty(), "Can't withdraw with classroom full");
+        require(isClassroomEmpty(), "Can't withdraw with classroom full");
         TransferHelper.safeTransfer(daiToken, owner(), IERC20(daiToken).balanceOf(address(this)));
     }
 
