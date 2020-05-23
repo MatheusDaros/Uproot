@@ -648,6 +648,7 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         universityCut = 0;
         studentAllowances = new uint256[](0);
         courseFinished = false;
+        classroomActive = false;
         _timestampAlarm = false;
     }
 

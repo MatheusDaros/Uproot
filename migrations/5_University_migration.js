@@ -6,7 +6,7 @@ var Web3 = require("web3");
 const name = Web3.utils.asciiToHex("University");
 const cut = 0.2 * 1e6;
 const relayHubAddress = "0xD216153c06E857cD7f72665E0aF1d7D82172F494"; //same on every network
-const classroomFactoryAddress = "0x96EBF1D2F7D35e58796BbB426692DD9AFa2581FB";
+const classroomFactoryAddress = "0x7A5e6E3BD666d26150e1Cdf1a7aB009aB3E006EE";
 const studentFactoryAddress = "0x363966265fa8ab6fE016BF10a8c1e7FA364bD878";
 const studentApplicationFactoryAddress =
     "0x0F1a2829339c0B5CcD9b6b353a8CD700de562850";
