@@ -204,7 +204,7 @@ describe("Grant process checks", function() {
                 requestIdTimestamp,
                 oraclePaymentTimestamp,
                 LINK.address,
-                true
+                false
             );
             await Classroom.connect(teacher1).configureUniswap(
                 uniswapDAI,

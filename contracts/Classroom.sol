@@ -278,20 +278,20 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         applyFundsAave(aaveApply);
     }
 
-    function applyFundsCompound(uint256 val) internal {
+    function applyFundsCompound(uint256 val) public onlyOwner {
         if (val == 0) return;
-        TransferHelper.safeApprove(address(daiToken), address(cDAI), val);
+        TransferHelper.safeApprove(daiToken, cDAI, val);
         CERC20(cDAI).mint(val);
     }
 
-    function applyFundsAave(uint256 val) internal {
+    function applyFundsAave(uint256 val) public onlyOwner  {
         if (val == 0) return;
         TransferHelper.safeApprove(
-            address(daiToken),
+            daiToken,
             aaveLendingPoolCore,
             val
         );
-        aaveLendingPool.deposit(address(daiToken), val, 0);
+        aaveLendingPool.deposit(daiToken, val, 0);
     }
 
     function studentApply() public override {
@@ -363,6 +363,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         }
     }
 
+    function countActiveApplications()
+        public
+        view
+        onlyOwner
+        returns (uint256 count)
+    {
+        return _validStudentApplications.length;
+    }
+
     function beginCourse(bool setAlatm)
         public
         onlyOwner
@@ -422,27 +431,48 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         aToken(aTokenDAI).redeem(balanceAave);
     }
 
-    function processResults() public onlyOwner {
-        require(courseFinished, "Classroom: course not finished");
-        _courseBalance = courseBalance();
-        require(
-            _courseBalance >= entryPrice.mul(_validStudentApplications.length),
-            "Classroom: not enough DAI to proceed"
-        );
-        (uint256 successCount, uint256 emptyCount) = _startAnswerVerification();
-        (
-            uint256 universityCut,
-            uint256[] memory studentAllowances
-        ) = _accountValues(successCount, emptyCount);
-        _resolveStudentAllowances(studentAllowances);
-        _resolveUniversityCut(universityCut);
-        _updateStudentScores();
-        _clearClassroom();
+    uint256 public coursePostBalance;
+    uint256 public successCount;
+    uint256 public emptyCount;
+    uint256 public universityCut;
+    uint256[] public studentAllowances;
+
+    uint16 _processPhase;
+
+    function viewProcessPhase() public view returns (uint16) {
+        if (!courseFinished) return (uint16(-1));
+        return _processPhase;
     }
 
-    function _startAnswerVerification() internal returns (uint256, uint256) {
-        uint256 successCount = 0;
-        uint256 emptyCount = 0;
+    /*
+    processResults();
+    startAnswerVerification();
+    accountValues();
+    resolveStudentAllowances();
+    resolveUniversityCut();
+    updateStudentScores();
+    endProcessResults();
+    */
+    function processResults() public {
+        require(courseFinished, "Classroom: course not finished");
+        coursePostBalance = courseBalance();
+        require(
+            coursePostBalance >= entryPrice.mul(_validStudentApplications.length),
+            "Classroom: not enough DAI to proceed"
+        );
+        _processPhase = 1;
+        studentAllowances = new uint256[](_validStudentApplications.length);
+    }
+
+    function startAnswerVerification() public  {
+        require(_processPhase > 0, "Classroom: call processResults first");
+        require(_processPhase < 2, "Classroom: step already done");
+        _startAnswerVerification();
+        _processPhase = 2;
+    }
+
+    function _startAnswerVerification() internal {
+        assert(_processPhase == 1);
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
             IStudentApplication(_validStudentApplications[i])
                 .registerFinalAnswer();
@@ -451,15 +481,21 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             if (appState == 3) successCount++;
             if (appState == 5) emptyCount++;
         }
-        return (successCount, emptyCount);
     }
 
-    function _accountValues(uint256 successCount, uint256 emptyCount)
+    function accountValues() public {
+        require(_processPhase > 1, "Classroom: call startAnswerVerification first");
+        require(_processPhase < 3, "Classroom: step already done");
+        _accountValues();
+        _processPhase = 3;
+    }
+
+    function _accountValues()
         internal
-        returns (uint256, uint256[] memory)
     {
+        assert(_processPhase == 2);
         uint256 nStudents = _validStudentApplications.length;
-        uint256 returnsPool = _courseBalance.sub(entryPrice.mul(nStudents));
+        uint256 returnsPool = coursePostBalance.sub(entryPrice.mul(nStudents));
         uint256 professorPaymentPerStudent = entryPrice.mul(principalCut).div(
             1e6
         );
@@ -470,10 +506,11 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         uint256 professorTotalPoolSuccessShare = successPool.mul(poolCut).div(
             1e6
         );
-        uint256 successStudentPoolShare = returnsPool
+        uint256 successStudentPoolShare = successCount > 0 ? 
+            returnsPool
             .sub(professorTotalPoolSuccessShare)
-            .div(successCount);
-        uint256[] memory studentAllowances = new uint256[](nStudents);
+            .div(successCount) 
+            : 0;
         for (uint256 i = 0; i < nStudents; i++) {
             uint256 appState = IStudentApplication(_validStudentApplications[i])
                 .applicationState();
@@ -496,24 +533,18 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
                 IStudentApplication(_validStudentApplications[i])
                     .accountAllowance(0, 0);
         }
-        
-        return (
-            _calculateUniversityShare(
-                emptyCount,
+        _calculateUniversityShare(
                 professorTotalPoolSuccessShare,
                 nStudents,
                 professorPaymentPerStudent
-            ),
-            studentAllowances
-        );
+            );
     }
 
     function _calculateUniversityShare(
-        uint256 emptyCount,
         uint256 professorTotalPoolSuccessShare,
         uint256 nStudents,
         uint256 professorPaymentPerStudent
-    ) internal view returns (uint256) {
+    ) internal returns (uint256) {
         uint24 uCut = university.cut();
         uint256 universityEmptyShare = emptyCount.mul(entryPrice);
         uint256 universityPaymentShare = professorTotalPoolSuccessShare
@@ -524,15 +555,23 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
             .mul(notEmptyCount)
             .mul(uCut)
             .div(1e6);
-        return
+        universityCut = 
             universityEmptyShare.add(universityPaymentShare).add(
                 universitySucessPoolShare
             );
     }
 
-    function _resolveStudentAllowances(uint256[] memory studentAllowances)
+    function resolveStudentAllowances() public {
+        require(_processPhase > 2, "Classroom: call accountValues first");
+        require(_processPhase < 4, "Classroom: step already done");
+        _resolveStudentAllowances();
+        _processPhase = 4;
+    }
+
+    function _resolveStudentAllowances()
         internal
     {
+        assert(_processPhase == 3);
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
             if (studentAllowances[i] > 0)
                 TransferHelper.safeTransfer(
@@ -543,7 +582,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         }
     }
 
-    function _resolveUniversityCut(uint256 universityCut) internal {
+    function resolveUniversityCut() public {
+        require(_processPhase > 3, "Classroom: call resolveStudentAllowances first");
+        require(_processPhase < 5, "Classroom: step already done");
+        _resolveUniversityCut();
+        _processPhase = 5;
+    }
+
+    function _resolveUniversityCut() internal {
+        assert(_processPhase == 4);
         TransferHelper.safeTransfer(
             address(daiToken),
             address(university),
@@ -552,7 +599,15 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         university.accountRevenue(universityCut);
     }
 
+    function updateStudentScores() public {
+        require(_processPhase > 4, "Classroom: call resolveUniversityCut first");
+        require(_processPhase < 6, "Classroom: step already done");
+        _updateStudentScores();
+        _processPhase = 6;
+    }
+
     function _updateStudentScores() internal {
+        assert(_processPhase == 5);
         for (uint256 i = 0; i < _validStudentApplications.length; i++) {
             uint256 appState = IStudentApplication(_validStudentApplications[i])
                 .applicationState();
@@ -577,10 +632,21 @@ contract Classroom is Ownable, ChainlinkClient, IClassroom {
         }
     }
 
+    function endProcessResults() public onlyOwner {
+        require(_processPhase > 5, "Classroom: call updateStudentScores first");
+        _clearClassroom();
+        _processPhase = 0;
+    }
+
     function _clearClassroom() internal {
+        assert(_processPhase == 6);
         _validStudentApplications = new address[](0);
         withdrawAllResults();
         _courseBalance = 0;
+        successCount = 0;
+        emptyCount = 0;
+        universityCut = 0;
+        studentAllowances = new uint256[](0);
         courseFinished = false;
         _timestampAlarm = false;
     }

@@ -311,7 +311,7 @@ describe("Class process checks", function() {
                 requestIdTimestamp,
                 oraclePaymentTimestamp,
                 LINK.address,
-                true
+                false
             );
             await expect(
                 Classroom.connect(teacher1).openApplications()
@@ -515,7 +515,7 @@ describe("Class process checks", function() {
             await DAI_ERC20.mock.balanceOf
                 .withArgs(Classroom.address)
                 .returns(ethers.utils.parseEther("0"));
-            await Classroom.connect(teacher1).beginCourse(true);
+            await Classroom.connect(teacher1).beginCourse(false);
             expect(await Classroom.connect(teacher1).isCourseOngoing()).to.equal(
                 true
             );
@@ -528,10 +528,10 @@ describe("Class process checks", function() {
             expect(await Classroom.connect(teacher1).isCourseOngoing()).to.equal(
                 true
             );
-            expect(Classroom.connect(teacher1).beginCourse(true)).to.be.revertedWith(
+            expect(Classroom.connect(teacher1).beginCourse(false)).to.be.revertedWith(
                 "Classroom: course already open"
             );
-            expect(Classroom.connect(teacher1).beginCourse(true)).to.be.revertedWith(
+            expect(Classroom.connect(teacher1).beginCourse(false)).to.be.revertedWith(
                 "Classroom: course already open"
             );
             expect(
@@ -639,8 +639,12 @@ describe("Class process checks", function() {
                 "Classroom: course not finished"
             );
             expect(await Student1.connect(student1).score()).to.equal(0);
-            expect(await StudentApplication1.connect(student1).viewPrincipalReturned()).to.equal(0);
-            expect(await StudentApplication1.connect(student1).viewPrizeReturned()).to.equal(0);
+            expect(
+                await StudentApplication1.connect(student1).viewPrincipalReturned()
+            ).to.equal(0);
+            expect(
+                await StudentApplication1.connect(student1).viewPrizeReturned()
+            ).to.equal(0);
             await Classroom.connect(teacher1).finishCourse();
             await DAI_ERC20.mock.balanceOf
                 .withArgs(Classroom.address)
@@ -649,21 +653,51 @@ describe("Class process checks", function() {
                 totalBalanceMock
             );
             await DAI_ERC20.mock.transfer.returns(true);
-            await Classroom.connect(teacher1).processResults();
-            expect(await University.revenueReceived()).to.equal(ethers.utils.parseEther("250.5"));
-            expect(await University.endowmentLocked()).to.equal(ethers.utils.parseEther("250.5"));
+            let tx;
+            tx = await Classroom.connect(teacher1).processResults();
+            await tx.wait();
+            tx = await Classroom.connect(teacher1).startAnswerVerification();
+            await tx.wait();
+            tx = await Classroom.connect(teacher1).accountValues();
+            await tx.wait();
+            tx = await Classroom.connect(teacher1).resolveStudentAllowances();
+            await tx.wait();
+            tx = await Classroom.connect(teacher1).resolveUniversityCut();
+            await tx.wait();
+            tx = await Classroom.connect(teacher1).updateStudentScores();
+            await tx.wait();
+            tx = await Classroom.connect(teacher1).endProcessResults();
+            await tx.wait();
+            expect(await University.revenueReceived()).to.equal(
+                ethers.utils.parseEther("250.5")
+            );
+            expect(await University.endowmentLocked()).to.equal(
+                ethers.utils.parseEther("250.5")
+            );
             expect(await Student1.connect(student1).score()).to.equal(1);
             expect(await Student2.connect(student2).score()).to.equal(-1);
             expect(await Student3.connect(student3).score()).to.equal(-1);
             expect(await Student4.connect(student4).score()).to.equal(1);
             expect(await Student5.connect(student5).score()).to.equal(-2);
             await expect(Student1.connect(student2).score()).to.be.reverted;
-            expect(await StudentApplication1.connect(student1).viewPrincipalReturned()).to.equal(ethers.utils.parseEther("150"));
-            expect(await StudentApplication2.connect(student2).viewPrincipalReturned()).to.equal(ethers.utils.parseEther("150"));
-            expect(await StudentApplication3.connect(student3).viewPrincipalReturned()).to.equal(ethers.utils.parseEther("150"));
-            expect(await StudentApplication4.connect(student4).viewPrincipalReturned()).to.equal(ethers.utils.parseEther("150"));
-            expect(await StudentApplication5.connect(student5).viewPrincipalReturned()).to.equal(0);
-            expect(await StudentApplication1.connect(student1).viewPrizeReturned()).to.equal(ethers.utils.parseEther("4"));
+            expect(
+                await StudentApplication1.connect(student1).viewPrincipalReturned()
+            ).to.equal(ethers.utils.parseEther("150"));
+            expect(
+                await StudentApplication2.connect(student2).viewPrincipalReturned()
+            ).to.equal(ethers.utils.parseEther("150"));
+            expect(
+                await StudentApplication3.connect(student3).viewPrincipalReturned()
+            ).to.equal(ethers.utils.parseEther("150"));
+            expect(
+                await StudentApplication4.connect(student4).viewPrincipalReturned()
+            ).to.equal(ethers.utils.parseEther("150"));
+            expect(
+                await StudentApplication5.connect(student5).viewPrincipalReturned()
+            ).to.equal(0);
+            expect(
+                await StudentApplication1.connect(student1).viewPrizeReturned()
+            ).to.equal(ethers.utils.parseEther("4"));
         });
     });
 });
