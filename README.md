@@ -1,2 +1,2 @@
-# Uproot
-Decentralized application for education and funding
+# uproot-trustless-contracts
+Smart Contracts for Uproot Trustless Application
